@@ -1,20 +1,135 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import SetsScreen from './src/screens/SetsScreen';
+import CardsScreen from './src/screens/CardsScreen';
+import SearchScreen from './src/screens/SearchScreen';
+import { LanguageProvider, useLang, LANGUAGES } from './src/utils/LanguageContext';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function LangPicker() {
+  const { lang, setLang } = useLang();
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={styles.picker}>
+      {LANGUAGES.map((l) => (
+        <TouchableOpacity
+          key={l.code}
+          onPress={() => setLang(l.code)}
+          style={[styles.langBtn, lang === l.code && styles.langBtnActive]}
+        >
+          <Text style={[styles.langText, lang === l.code && styles.langTextActive]}>
+            {l.flag} {l.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
 
+function SetsStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: '#16213e' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+        headerRight: () => <LangPicker />,
+      }}
+    >
+      <Stack.Screen name="Sets" component={SetsScreen} options={{ title: 'Collection' }} />
+      <Stack.Screen
+        name="Cards"
+        component={CardsScreen}
+        options={({ route }) => ({ title: route.params.set.name })}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function SearchStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: '#16213e' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+      }}
+    >
+      <Stack.Screen name="Search" component={SearchScreen} options={{ title: 'Recherche' }} />
+    </Stack.Navigator>
+  );
+}
+
+function AppTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#16213e',
+          borderTopColor: '#2a2a4a',
+        },
+        tabBarActiveTintColor: '#E63F00',
+        tabBarInactiveTintColor: '#555',
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
+      }}
+    >
+      <Tab.Screen
+        name="SetsTab"
+        component={SetsStack}
+        options={{
+          tabBarLabel: 'Collection',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>📦</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="SearchTab"
+        component={SearchStack}
+        options={{
+          tabBarLabel: 'Recherche',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>🔍</Text>,
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <AppTabs />
+      </NavigationContainer>
+    </LanguageProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  picker: {
+    flexDirection: 'row',
+    gap: 4,
+    marginRight: 4,
+  },
+  langBtn: {
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  langBtnActive: {
+    backgroundColor: '#E63F00',
+  },
+  langText: {
+    color: '#666',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  langTextActive: {
+    color: '#fff',
   },
 });
