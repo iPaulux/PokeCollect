@@ -9,6 +9,8 @@ import CardsScreen from './src/screens/CardsScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import ListsScreen from './src/screens/ListsScreen';
 import ListDetailScreen from './src/screens/ListDetailScreen';
+import ItemsScreen from './src/screens/ItemsScreen';
+import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import { LanguageProvider, useLang, LANGUAGES } from './src/utils/LanguageContext';
 
 const Stack = createNativeStackNavigator();
@@ -73,6 +75,19 @@ function ListsStack() {
   );
 }
 
+function ItemsStack() {
+  return (
+    <Stack.Navigator screenOptions={headerOpts}>
+      <Stack.Screen name="Items" component={ItemsScreen} options={{ title: 'Produits' }} />
+      <Stack.Screen
+        name="ItemDetail"
+        component={ItemDetailScreen}
+        options={({ route }) => ({ title: route.params.product.nameFr })}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function AppTabs() {
   return (
     <Tab.Navigator
@@ -105,6 +120,11 @@ function AppTabs() {
         name="ListsTab"
         component={ListsStack}
         options={{ tabBarLabel: '📋  Mes Listes' }}
+      />
+      <Tab.Screen
+        name="ItemsTab"
+        component={ItemsStack}
+        options={{ tabBarLabel: '🛍️  Produits' }}
       />
     </Tab.Navigator>
   );
