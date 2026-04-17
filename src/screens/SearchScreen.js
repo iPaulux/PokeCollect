@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
+import AddToListModal from '../components/AddToListModal';
+import { getFrToEnMap, resolveSearchTerm } from '../utils/pokemonNames';
 
 const RARITIES = [
   { label: 'Toutes', value: null },
@@ -33,44 +35,58 @@ export default function SearchScreen() {
   const [owned, setOwned] = useState({});
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [listModalCard, setListModalCard] = useState(null);
+  const [translatedTerm, setTranslatedTerm] = useState(null); // pour afficher "Résultats pour X"
   const debounceRef = useRef(null);
 
+  // Précharger la map FR→EN en arrière-plan dès l'ouverture de l'onglet
   useFocusEffect(
     useCallback(() => {
       getOwnedCards().then(setOwned);
+      getFrToEnMap(); // warm-up du cache silencieux
     }, [])
   );
 
-  const doSearch = useCallback(
-    async (q, r) => {
-      if (!q.trim() && !r) {
-        setCards([]);
-        setSearched(false);
-        return;
+  const doSearch = useCallback(async (q, r) => {
+    if (!q.trim() && !r) {
+      setCards([]);
+      setSearched(false);
+      setTranslatedTerm(null);
+      return;
+    }
+    setLoading(true);
+    setSearched(true);
+
+    // Résolution FR → EN
+    let resolvedQ = q.trim();
+    if (q.trim()) {
+      const resolved = await resolveSearchTerm(q.trim());
+      if (resolved.toLowerCase() !== q.trim().toLowerCase()) {
+        setTranslatedTerm(resolved); // on va afficher "Résultats pour Charmander"
+        resolvedQ = resolved;
+      } else {
+        setTranslatedTerm(null);
       }
-      setLoading(true);
-      setSearched(true);
+    }
 
-      const parts = [];
-      if (q.trim()) parts.push(`name:"*${q.trim()}*"`);
-      if (r) parts.push(`rarity:"${r}"`);
+    const parts = [];
+    if (resolvedQ) parts.push(`name:"*${resolvedQ}*"`);
+    if (r) parts.push(`rarity:"${r}"`);
 
-      const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(
-        parts.join(' ')
-      )}&orderBy=name&pageSize=60&select=id,name,number,rarity,set.name,images`;
+    const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(
+      parts.join(' ')
+    )}&orderBy=name&pageSize=60&select=id,name,number,rarity,set.name,images`;
 
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        setCards(data.data || []);
-      } catch {
-        setCards([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setCards(data.data || []);
+    } catch {
+      setCards([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleQueryChange = (text) => {
     setQuery(text);
@@ -141,6 +157,11 @@ export default function SearchScreen() {
         </View>
       ) : (
         <>
+          {translatedTerm && (
+            <Text style={styles.translatedNote}>
+              🔄 Recherche traduite : <Text style={styles.translatedWord}>{translatedTerm}</Text>
+            </Text>
+          )}
           <Text style={styles.resultCount}>{cards.length} carte(s) trouvée(s)</Text>
           <FlatList
             data={cards}
@@ -150,32 +171,39 @@ export default function SearchScreen() {
             renderItem={({ item }) => {
               const isOwned = !!owned[item.id];
               return (
-                <TouchableOpacity
-                  style={[styles.cardCell, isOwned && styles.cardOwned]}
-                  onPress={() => handleToggle(item.id)}
-                >
-                  <Image
-                    source={{ uri: item.images?.small }}
-                    style={[styles.cardImage, !isOwned && styles.cardImageGray]}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.cardName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.cardSet} numberOfLines={1}>
-                    {item.set?.name}
-                  </Text>
+                <View style={[styles.cardCell, isOwned && styles.cardOwned]}>
+                  <TouchableOpacity style={styles.imgWrapper} onPress={() => handleToggle(item.id)}>
+                    <Image
+                      source={{ uri: item.images?.small }}
+                      style={[styles.cardImage, !isOwned && styles.cardImageGray]}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.cardSet} numberOfLines={1}>{item.set?.name}</Text>
                   {isOwned && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>✓</Text>
                     </View>
                   )}
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.listBtn}
+                    onPress={() => setListModalCard(item)}
+                  >
+                    <Text style={styles.listBtnText}>📋</Text>
+                  </TouchableOpacity>
+                </View>
               );
             }}
           />
         </>
       )}
+
+      <AddToListModal
+        visible={!!listModalCard}
+        card={listModalCard}
+        onClose={() => setListModalCard(null)}
+      />
     </View>
   );
 }
@@ -236,6 +264,17 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 14,
   },
+  translatedNote: {
+    color: '#888',
+    fontSize: 11,
+    paddingHorizontal: 14,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  translatedWord: {
+    color: '#E63F00',
+    fontWeight: '700',
+  },
   resultCount: {
     color: '#666',
     fontSize: 12,
@@ -264,6 +303,7 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 0.72,
   },
+  imgWrapper: { width: '100%' },
   cardImageGray: {
     opacity: 0.35,
   },
@@ -296,4 +336,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
+  listBtn: {
+    position: 'absolute',
+    bottom: 22,
+    right: 2,
+    padding: 2,
+  },
+  listBtnText: { fontSize: 12 },
 });

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLang, LANGUAGES } from '../utils/LanguageContext';
 import { getCached, setCached } from '../utils/cache';
+import { filterSets, resolveSetQuery } from '../utils/setNames';
 
 const LANG_NOTE = {
   fr: "🇫🇷 Les sets FR ne sont pas dans l'API — les visuels sont en anglais mais les numéros de cartes sont identiques.",
@@ -22,6 +23,7 @@ export default function SetsScreen({ navigation }) {
   const [sets, setSets] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
+  const [translatedSet, setTranslatedSet] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,9 +55,11 @@ export default function SetsScreen({ navigation }) {
   useEffect(() => {
     if (!search.trim()) {
       setFiltered(sets);
+      setTranslatedSet(null);
     } else {
-      const q = search.toLowerCase();
-      setFiltered(sets.filter((s) => s.name.toLowerCase().includes(q)));
+      const { translated, wasFrench } = resolveSetQuery(search);
+      setTranslatedSet(wasFrench ? translated : null);
+      setFiltered(filterSets(sets, search));
     }
   }, [search, sets]);
 
@@ -85,11 +89,16 @@ export default function SetsScreen({ navigation }) {
       )}
       <TextInput
         style={styles.search}
-        placeholder="Rechercher un set..."
+        placeholder="Rechercher un set... (ex: Évolutions Prismatiques)"
         placeholderTextColor="#888"
         value={search}
         onChangeText={setSearch}
       />
+      {translatedSet && (
+        <Text style={styles.translatedNote}>
+          🔄 Recherche traduite : <Text style={styles.translatedWord}>{translatedSet}</Text>
+        </Text>
+      )}
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}

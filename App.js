@@ -7,6 +7,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SetsScreen from './src/screens/SetsScreen';
 import CardsScreen from './src/screens/CardsScreen';
 import SearchScreen from './src/screens/SearchScreen';
+import ListsScreen from './src/screens/ListsScreen';
+import ListDetailScreen from './src/screens/ListDetailScreen';
 import { LanguageProvider, useLang, LANGUAGES } from './src/utils/LanguageContext';
 
 const Stack = createNativeStackNavigator();
@@ -31,16 +33,15 @@ function LangPicker() {
   );
 }
 
+const headerOpts = {
+  headerStyle: { backgroundColor: '#16213e' },
+  headerTintColor: '#fff',
+  headerTitleStyle: { fontWeight: '700' },
+};
+
 function SetsStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#16213e' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-        headerRight: () => <LangPicker />,
-      }}
-    >
+    <Stack.Navigator screenOptions={{ ...headerOpts, headerRight: () => <LangPicker /> }}>
       <Stack.Screen name="Sets" component={SetsScreen} options={{ title: 'Collection' }} />
       <Stack.Screen
         name="Cards"
@@ -53,14 +54,21 @@ function SetsStack() {
 
 function SearchStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#16213e' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-      }}
-    >
+    <Stack.Navigator screenOptions={headerOpts}>
       <Stack.Screen name="Search" component={SearchScreen} options={{ title: 'Recherche' }} />
+    </Stack.Navigator>
+  );
+}
+
+function ListsStack() {
+  return (
+    <Stack.Navigator screenOptions={headerOpts}>
+      <Stack.Screen name="Lists" component={ListsScreen} options={{ title: 'Mes Listes' }} />
+      <Stack.Screen
+        name="ListDetail"
+        component={ListDetailScreen}
+        options={({ route }) => ({ title: route.params.list.name })}
+      />
     </Stack.Navigator>
   );
 }
@@ -70,13 +78,10 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#16213e',
-          borderTopColor: '#2a2a4a',
-        },
+        tabBarStyle: { backgroundColor: '#16213e', borderTopColor: '#2a2a4a' },
         tabBarActiveTintColor: '#E63F00',
         tabBarInactiveTintColor: '#555',
-        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tab.Screen
@@ -84,7 +89,7 @@ function AppTabs() {
         component={SetsStack}
         options={{
           tabBarLabel: 'Collection',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>📦</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>📦</Text>,
         }}
       />
       <Tab.Screen
@@ -92,7 +97,15 @@ function AppTabs() {
         component={SearchStack}
         options={{
           tabBarLabel: 'Recherche',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>🔍</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>🔍</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="ListsTab"
+        component={ListsStack}
+        options={{
+          tabBarLabel: 'Mes Listes',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>📋</Text>,
         }}
       />
     </Tab.Navigator>
@@ -111,25 +124,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  picker: {
-    flexDirection: 'row',
-    gap: 4,
-    marginRight: 4,
-  },
-  langBtn: {
-    paddingHorizontal: 7,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  langBtnActive: {
-    backgroundColor: '#E63F00',
-  },
-  langText: {
-    color: '#666',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  langTextActive: {
-    color: '#fff',
-  },
+  picker: { flexDirection: 'row', gap: 4, marginRight: 4 },
+  langBtn: { paddingHorizontal: 7, paddingVertical: 4, borderRadius: 6 },
+  langBtnActive: { backgroundColor: '#E63F00' },
+  langText: { color: '#666', fontSize: 11, fontWeight: '600' },
+  langTextActive: { color: '#fff' },
 });
