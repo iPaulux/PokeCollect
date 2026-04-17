@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getLists, createList, deleteList, renameList } from '../utils/lists';
+import { fonts } from '../utils/theme';
 import { getOwnedCards } from '../utils/storage';
 
 export default function ListsScreen({ navigation }) {
@@ -176,9 +177,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#E63F00',
     alignItems: 'center',
   },
-  createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  createBtnText: { color: '#fff', fontFamily: fonts.bold, fontSize: 15 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  empty: { color: '#888', fontSize: 15, fontWeight: '600' },
+  empty: { color: '#888', fontSize: 15, fontFamily: fonts.semibold },
   emptySub: { color: '#555', fontSize: 13, marginTop: 6 },
   list: { paddingHorizontal: 12, paddingBottom: 20 },
   listCard: {
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     borderColor: '#2a2a4a',
   },
   listInfo: { flex: 1 },
-  listName: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  listName: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
   listMeta: { color: '#888', fontSize: 12, marginTop: 3 },
   listOwned: { color: '#E63F00' },
   listActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a2a4a',
   },
-  modalTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  modalTitle: { color: '#fff', fontSize: 16, fontFamily: fonts.bold, marginBottom: 14 },
   modalInput: {
     backgroundColor: '#1a1a2e',
     borderRadius: 8,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a4a',
     alignItems: 'center',
   },
-  modalCancelText: { color: '#aaa', fontWeight: '600' },
+  modalCancelText: { color: '#aaa', fontFamily: fonts.semibold },
   modalConfirm: {
     flex: 1,
     paddingVertical: 10,
@@ -240,5 +241,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#E63F00',
     alignItems: 'center',
   },
-  modalConfirmText: { color: '#fff', fontWeight: '700' },
+  modalConfirmText: { color: '#fff', fontFamily: fonts.bold },
 });

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
+import { fonts } from '../utils/theme';
 import { getCached, setCached } from '../utils/cache';
 import CardDetailModal from '../components/CardDetailModal';
 
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressText: { color: '#ccc', fontSize: 13 },
-  progressPct: { color: '#E63F00', fontSize: 13, fontWeight: '700' },
+  progressPct: { color: '#E63F00', fontSize: 13, fontFamily: fonts.bold },
   progressBar: { height: 6, backgroundColor: '#2a2a4a', borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#E63F00', borderRadius: 3 },
   tabs: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#2a2a4a',
   },
   tabActive: { backgroundColor: '#E63F00', borderColor: '#E63F00' },
-  tabText: { color: '#888', fontSize: 12, fontWeight: '600' },
+  tabText: { color: '#888', fontSize: 12, fontFamily: fonts.semibold },
   tabTextActive: { color: '#fff' },
   grid: { padding: 8 },
   cardCell: {
@@ -194,5 +195,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#E63F00', borderRadius: 10,
     width: 18, height: 18, justifyContent: 'center', alignItems: 'center',
   },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  badgeText: { color: '#fff', fontSize: 10, fontFamily: fonts.bold },
 });

@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
+import { fonts } from '../utils/theme';
 import { useFocusEffect } from '@react-navigation/native';
 import CardDetailModal from '../components/CardDetailModal';
 import { getFrToEnMap, resolveSearchTerm } from '../utils/pokemonNames';
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   rarityText: {
     color: '#888',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   rarityTextActive: {
     color: '#fff',
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   },
   translatedWord: {
     color: '#E63F00',
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
   resultCount: {
     color: '#666',
@@ -314,6 +315,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     paddingHorizontal: 4,
     textAlign: 'center',
+    fontFamily: fonts.regular,
   },
   cardSet: {
     color: '#666',
@@ -335,6 +337,6 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
 });

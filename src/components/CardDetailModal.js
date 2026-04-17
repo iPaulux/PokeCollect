@@ -12,6 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import { getCached, setCached } from '../utils/cache';
+import { fonts } from '../utils/theme';
 import AddToListModal from './AddToListModal';
 
 const RARITY_SHORT = {
@@ -167,7 +168,7 @@ export default function CardDetailModal({ visible, card, owned, onToggle, onClos
                 return (
                   <View style={[styles.statCell, styles.rarityCell, { borderColor: r?.color ?? '#444' }]}>
                     <Text style={styles.statLabel}>Rareté</Text>
-                    <Text style={[styles.statValue, { color: r?.color ?? '#ddd', fontSize: 15, fontWeight: '800' }]}>
+                    <Text style={[styles.statValue, { color: r?.color ?? '#ddd', fontSize: 15, fontFamily: fonts.extrabold }]}>
                       {r?.label ?? display.rarity}
                     </Text>
                   </View>
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   cardName: {
     color: '#fff',
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: fonts.extrabold,
     textAlign: 'center',
     marginBottom: 10,
   },
@@ -323,13 +324,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a2a4a',
   },
-  badgeText: { color: '#aaa', fontSize: 11, fontWeight: '600' },
+  badgeText: { color: '#aaa', fontSize: 11, fontFamily: fonts.semibold },
   typeBadge: {
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  typeBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  typeBadgeText: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
 
   setLine: {
     color: '#666',
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   statLabel: { color: '#666', fontSize: 10, marginBottom: 2 },
-  statValue: { color: '#ddd', fontSize: 13, fontWeight: '700' },
+  statValue: { color: '#ddd', fontSize: 13, fontFamily: fonts.bold },
 
   /* Prix */
   priceSection: {
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
   priceSectionTitle: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     marginBottom: 12,
     alignSelf: 'flex-start',
   },
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
   priceSource: {
     color: '#E63F00',
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -399,8 +400,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#2a2a4a',
   },
   priceLabel: { color: '#888', fontSize: 13 },
-  priceValue: { color: '#ddd', fontSize: 13, fontWeight: '600' },
-  priceHighlight: { color: '#E63F00', fontSize: 14, fontWeight: '800' },
+  priceValue: { color: '#ddd', fontSize: 13, fontFamily: fonts.semibold },
+  priceHighlight: { color: '#E63F00', fontSize: 14, fontFamily: fonts.extrabold },
   noPrice: { color: '#555', fontSize: 13 },
 
   /* Boutons */
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnOwned: { backgroundColor: '#1a4a1a', borderWidth: 1, borderColor: '#2a7a2a' },
-  btnPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  btnPrimaryText: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
   btnSecondary: {
     backgroundColor: '#1a1a2e',
     borderRadius: 12,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a2a4a',
   },
-  btnSecondaryText: { color: '#aaa', fontSize: 14, fontWeight: '600' },
+  btnSecondaryText: { color: '#aaa', fontSize: 14, fontFamily: fonts.semibold },
   btnCardmarket: {
     backgroundColor: '#1a2e1a',
     borderRadius: 12,
@@ -430,5 +431,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a5c2a',
   },
-  btnCardmarketText: { color: '#4caf50', fontSize: 14, fontWeight: '600' },
+  btnCardmarketText: { color: '#4caf50', fontSize: 14, fontFamily: fonts.semibold },
 });

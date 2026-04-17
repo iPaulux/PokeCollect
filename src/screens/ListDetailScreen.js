@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getLists, removeCardFromList } from '../utils/lists';
+import { fonts } from '../utils/theme';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 
 export default function ListDetailScreen({ route, navigation }) {
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a2e',
     padding: 30,
   },
-  empty: { color: '#888', fontSize: 15, fontWeight: '600' },
+  empty: { color: '#888', fontSize: 15, fontFamily: fonts.semibold },
   emptySub: { color: '#555', fontSize: 13, marginTop: 8, textAlign: 'center' },
   progressContainer: {
     paddingHorizontal: 16,
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressText: { color: '#ccc', fontSize: 13 },
-  progressPct: { color: '#E63F00', fontSize: 13, fontWeight: '700' },
+  progressPct: { color: '#E63F00', fontSize: 13, fontFamily: fonts.bold },
   progressBar: { height: 6, backgroundColor: '#2a2a4a', borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#E63F00', borderRadius: 3 },
   tabs: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
     borderColor: '#2a2a4a',
   },
   tabActive: { backgroundColor: '#E63F00', borderColor: '#E63F00' },
-  tabText: { color: '#888', fontSize: 12, fontWeight: '600' },
+  tabText: { color: '#888', fontSize: 12, fontFamily: fonts.semibold },
   tabTextActive: { color: '#fff' },
   grid: { padding: 8 },
   cardCell: {
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
   cardOwned: { borderColor: '#E63F00', borderWidth: 2 },
   cardImage: { width: '100%', aspectRatio: 0.72 },
   cardImageGray: { opacity: 0.35 },
-  cardName: { color: '#ddd', fontSize: 10, marginTop: 3, paddingHorizontal: 4, textAlign: 'center' },
+  cardName: { color: '#ddd', fontSize: 10, marginTop: 3, paddingHorizontal: 4, textAlign: 'center', fontFamily: fonts.regular },
   cardSet: { color: '#666', fontSize: 9, paddingHorizontal: 4, textAlign: 'center' },
   badge: {
     position: 'absolute',
@@ -210,5 +211,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  badgeText: { color: '#fff', fontSize: 10, fontFamily: fonts.bold },
 });

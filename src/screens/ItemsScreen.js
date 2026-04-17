@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { PRODUCTS, PRODUCT_TYPES } from '../data/products';
+import { fonts } from '../utils/theme';
 import { getCached } from '../utils/cache';
 
 const TYPE_COLORS = {
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#2a2a4a',
   },
   filterBtnActive: { backgroundColor: '#E63F00', borderColor: '#E63F00' },
-  filterText: { color: '#888', fontSize: 12, fontWeight: '600' },
+  filterText: { color: '#888', fontSize: 12, fontFamily: fonts.semibold },
   filterTextActive: { color: '#fff' },
   count: { color: '#555', fontSize: 11, paddingHorizontal: 14, paddingBottom: 4 },
   list: { paddingHorizontal: 12, paddingBottom: 20 },
@@ -183,12 +184,12 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0,
     alignItems: 'center', paddingVertical: 2,
   },
-  typeBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
+  typeBadgeText: { color: '#fff', fontSize: 9, fontFamily: fonts.bold, letterSpacing: 0.5 },
   info: { flex: 1, paddingHorizontal: 12, paddingVertical: 10 },
-  productName: { color: '#fff', fontSize: 13, fontWeight: '700', lineHeight: 18 },
+  productName: { color: '#fff', fontSize: 13, fontFamily: fonts.bold, lineHeight: 18 },
   setName: { color: '#888', fontSize: 11, marginTop: 2 },
   metaRow: { flexDirection: 'row', gap: 10, marginTop: 5, alignItems: 'center' },
-  price: { color: '#E63F00', fontSize: 12, fontWeight: '700' },
+  price: { color: '#E63F00', fontSize: 12, fontFamily: fonts.bold },
   packs: { color: '#666', fontSize: 11 },
   date: { color: '#444', fontSize: 10, marginTop: 3 },
   arrow: { color: '#444', fontSize: 22, paddingRight: 12 },

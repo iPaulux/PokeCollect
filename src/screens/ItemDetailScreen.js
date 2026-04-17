@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PRICE_SOURCE, PRICE_UPDATED } from '../data/products';
+import { fonts } from '../utils/theme';
 
 const TYPE_LABELS = {
   booster:  'Booster',
@@ -148,15 +149,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#E63F00', borderRadius: 12,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  typePillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  typePillText: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
 
   titleBlock: {
     paddingHorizontal: 18, paddingTop: 18, paddingBottom: 10,
     borderBottomWidth: 1, borderBottomColor: '#2a2a4a',
   },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 26 },
+  title: { color: '#fff', fontSize: 20, fontFamily: fonts.extrabold, lineHeight: 26 },
   titleEn: { color: '#666', fontSize: 13, marginTop: 4, fontStyle: 'italic' },
-  price: { color: '#E63F00', fontSize: 18, fontWeight: '700', marginTop: 8 },
+  price: { color: '#E63F00', fontSize: 18, fontFamily: fonts.bold, marginTop: 8 },
   priceSource: { color: '#444', fontSize: 10, marginTop: 3, fontStyle: 'italic' },
 
   descBlock: {
@@ -169,13 +170,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingTop: 18, paddingBottom: 4,
     borderBottomWidth: 1, borderBottomColor: '#2a2a4a',
   },
-  sectionTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 12 },
+  sectionTitle: { color: '#fff', fontSize: 14, fontFamily: fonts.bold, marginBottom: 12 },
   row: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: '#1e2a3a',
   },
   rowLabel: { color: '#888', fontSize: 13 },
-  rowValue: { color: '#ddd', fontSize: 13, fontWeight: '600', textAlign: 'right', flex: 1, marginLeft: 12 },
+  rowValue: { color: '#ddd', fontSize: 13, fontFamily: fonts.semibold, textAlign: 'right', flex: 1, marginLeft: 12 },
   extraRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 5 },
   bullet: { color: '#E63F00', fontSize: 14, marginRight: 8, lineHeight: 20 },
   extraText: { color: '#ccc', fontSize: 13, flex: 1, lineHeight: 20 },
@@ -186,11 +187,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a2e1a', alignItems: 'center',
     borderWidth: 1, borderColor: '#2a5c2a',
   },
-  cardmarketBtnText: { color: '#4caf50', fontSize: 14, fontWeight: '700' },
+  cardmarketBtnText: { color: '#4caf50', fontSize: 14, fontFamily: fonts.bold },
   setBtn: {
     margin: 18, marginTop: 10, padding: 14, borderRadius: 12,
     backgroundColor: '#16213e', alignItems: 'center',
     borderWidth: 1, borderColor: '#E63F00',
   },
-  setBtnText: { color: '#E63F00', fontSize: 14, fontWeight: '700' },
+  setBtnText: { color: '#E63F00', fontSize: 14, fontFamily: fonts.bold },
 });

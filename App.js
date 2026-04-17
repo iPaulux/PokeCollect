@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  Poppins_800ExtraBold,
+} from '@expo-google-fonts/poppins';
+import AnimatedSplash from './src/components/AnimatedSplash';
+import { fonts } from './src/utils/theme';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -38,7 +48,7 @@ function LangPicker() {
 const headerOpts = {
   headerStyle: { backgroundColor: '#16213e' },
   headerTintColor: '#fff',
-  headerTitleStyle: { fontWeight: '700' },
+  headerTitleStyle: { fontFamily: fonts.bold, fontSize: 17 },
 };
 
 function SetsStack() {
@@ -102,40 +112,55 @@ function AppTabs() {
         },
         tabBarActiveTintColor: '#E63F00',
         tabBarInactiveTintColor: '#555',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.semibold },
         tabBarIconStyle: { display: 'none' },
       }}
     >
       <Tab.Screen
         name="SetsTab"
         component={SetsStack}
-        options={{ tabBarLabel: '📦  Collection' }}
+        options={{ tabBarLabel: '📦 Home' }}
       />
       <Tab.Screen
         name="SearchTab"
         component={SearchStack}
-        options={{ tabBarLabel: '🔍  Recherche' }}
+        options={{ tabBarLabel: '🔍 Search' }}
       />
       <Tab.Screen
         name="ListsTab"
         component={ListsStack}
-        options={{ tabBarLabel: '📋  Mes Listes' }}
+        options={{ tabBarLabel: '📋 Lists' }}
       />
       <Tab.Screen
         name="ItemsTab"
         component={ItemsStack}
-        options={{ tabBarLabel: '🛍️  Produits' }}
+        options={{ tabBarLabel: '🛍️ Products' }}
       />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
+  });
+
+  // On attend que les fonts soient prêtes avant de rendre quoi que ce soit
+  if (!fontsLoaded) return null;
+
   return (
     <LanguageProvider>
       <NavigationContainer>
         <StatusBar style="light" />
         <AppTabs />
+        {!splashDone && (
+          <AnimatedSplash onFinish={() => setSplashDone(true)} />
+        )}
       </NavigationContainer>
     </LanguageProvider>
   );
@@ -145,6 +170,6 @@ const styles = StyleSheet.create({
   picker: { flexDirection: 'row', gap: 4, marginRight: 4 },
   langBtn: { paddingHorizontal: 7, paddingVertical: 4, borderRadius: 6 },
   langBtnActive: { backgroundColor: '#E63F00' },
-  langText: { color: '#666', fontSize: 11, fontWeight: '600' },
+  langText: { color: '#666', fontSize: 11, fontFamily: fonts.semibold },
   langTextActive: { color: '#fff' },
 });

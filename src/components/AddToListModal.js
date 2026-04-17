@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { getLists, createList, addCardToList, removeCardFromList } from '../utils/lists';
+import { fonts } from '../utils/theme';
 
 export default function AddToListModal({ visible, card, onClose }) {
   const [lists, setLists] = useState({});
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 16,
   },
-  title: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  title: { color: '#fff', fontSize: 16, fontFamily: fonts.bold, marginBottom: 4 },
   cardName: { color: '#888', fontSize: 12, marginBottom: 14 },
   empty: { color: '#555', fontSize: 13, marginBottom: 14, textAlign: 'center' },
   listScroll: { maxHeight: 280 },
@@ -174,8 +175,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: { backgroundColor: '#E63F00', borderColor: '#E63F00' },
-  checkmark: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  listName: { color: '#fff', fontSize: 14 },
+  checkmark: { color: '#fff', fontSize: 12, fontFamily: fonts.bold },
+  listName: { color: '#fff', fontSize: 14, fontFamily: fonts.regular },
   listCount: { color: '#666', fontSize: 11 },
   createRow: {
     flexDirection: 'row',
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
-  createConfirmText: { color: '#fff', fontWeight: '700' },
+  createConfirmText: { color: '#fff', fontFamily: fonts.bold },
   createBtn: {
     marginTop: 14,
     paddingVertical: 11,
@@ -210,5 +211,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a2a4a',
   },
-  createBtnText: { color: '#888', fontWeight: '600' },
+  createBtnText: { color: '#888', fontFamily: fonts.semibold },
 });

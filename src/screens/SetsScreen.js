@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useLang, LANGUAGES } from '../utils/LanguageContext';
+import { fonts } from '../utils/theme';
 import { getCached, setCached } from '../utils/cache';
 import { filterSets, resolveSetQuery } from '../utils/setNames';
 
@@ -142,6 +143,7 @@ const styles = StyleSheet.create({
     color: '#ccc',
     marginTop: 12,
     fontSize: 14,
+    fontFamily: fonts.regular,
   },
   emptyText: {
     color: '#888',
@@ -167,7 +169,7 @@ const styles = StyleSheet.create({
   },
   translatedWord: {
     color: '#E63F00',
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
   list: {
     paddingHorizontal: 12,
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
   setName: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
   setMeta: {
     color: '#aaa',
