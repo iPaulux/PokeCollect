@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import AnimatedSplash from './src/components/AnimatedSplash';
 import { fonts } from './src/utils/theme';
+import { migrateFromAsyncStorage } from './src/utils/persist';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';

@@ -1,14 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { readStore, writeStore } from './persist';
 
-const OWNED_KEY = 'owned_cards';
+const KEY = 'owned_cards';
 
 export async function getOwnedCards() {
-  try {
-    const json = await AsyncStorage.getItem(OWNED_KEY);
-    return json ? JSON.parse(json) : {};
-  } catch {
-    return {};
-  }
+  const data = await readStore(KEY);
+  return data ?? {};
 }
 
 export async function toggleCard(cardId) {
@@ -18,6 +14,6 @@ export async function toggleCard(cardId) {
   } else {
     owned[cardId] = true;
   }
-  await AsyncStorage.setItem(OWNED_KEY, JSON.stringify(owned));
+  await writeStore(KEY, owned);
   return owned;
 }

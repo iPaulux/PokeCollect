@@ -17,22 +17,25 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 import CardDetailModal from '../components/CardDetailModal';
 import { fonts } from '../utils/theme';
+import TextRecognition from '@react-native-ml-kit/text-recognition';
 
-// ─── OCR : api.ocr.space clé gratuite ────────────────────────────────────────
-// Pour augmenter la limite, inscrivez-vous sur https://ocr.space et remplacez la clé
-const OCR_API_KEY = 'K_GUEST';
-
-// Extrait le nom probable de la carte depuis le texte OCR brut
-function extractCardName(rawText) {
-  const lines = rawText
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 1 && l.length < 40)
-    .filter((l) => !/^\d+$/.test(l)); // exclure les lignes 100% numériques
-
-  // La première ligne non-numérique avec une majuscule est généralement le nom
-  const candidate = lines.find((l) => /^[A-Z]/.test(l));
-  return candidate ?? lines[0] ?? '';
+// Extrait le nom probable de la carte depuis les blocs ML Kit
+// Les cartes Pokémon ont le nom en gros en haut — c'est le premier bloc avec une maj
+function extractCardName(result) {
+  const allLines = [];
+  for (const block of result.blocks ?? []) {
+    for (const line of block.lines ?? []) {
+      const txt = line.text?.trim();
+      if (txt && txt.length > 1 && txt.length < 40 && !/^\d+$/.test(txt)) {
+        allLines.push({ txt, y: line.frame?.top ?? 999 });
+      }
+    }
+  }
+  // Trier par position verticale (le nom est en haut de la carte)
+  allLines.sort((a, b) => a.y - b.y);
+  // Prendre la première ligne qui commence par une majuscule
+  const candidate = allLines.find((l) => /^[A-ZÁÀÉÈÊËÎÏÔÙÛ]/.test(l.txt));
+  return candidate?.txt ?? allLines[0]?.txt ?? '';
 }
 
 export default function ScanScreen() {
@@ -64,13 +67,13 @@ export default function ScanScreen() {
   const takePicture = async () => {
     if (!cameraRef.current) return;
     try {
-      const raw = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.8 });
+      const raw = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.9 });
 
-      // Redimensionner pour alléger l'envoi OCR (max 1000px de large)
-      const resized = await manipulateAsync(
+      // Recadrer le tiers supérieur de l'image (zone du nom sur la carte)
+      const cropped = await manipulateAsync(
         raw.uri,
-        [{ resize: { width: 1000 } }],
-        { compress: 0.75, format: SaveFormat.JPEG, base64: true }
+        [{ crop: { originX: 0, originY: 0, width: raw.width, height: Math.round(raw.height * 0.28) } }],
+        { compress: 1, format: SaveFormat.JPEG }
       );
 
       setPhotoUri(raw.uri);
@@ -79,31 +82,17 @@ export default function ScanScreen() {
       setCards([]);
       setSearchQuery('');
 
-      await runOCR(resized.base64);
+      await runOCR(cropped.uri);
     } catch (e) {
       Alert.alert('Erreur', 'Impossible de prendre la photo.');
     }
   };
 
-  // ── OCR ──────────────────────────────────────────────────────────────────
-  const runOCR = async (base64) => {
+  // ── OCR — Google ML Kit on-device (offline, gratuit) ─────────────────────
+  const runOCR = async (imageUri) => {
     try {
-      const formData = new FormData();
-      formData.append('base64Image', `data:image/jpeg;base64,${base64}`);
-      formData.append('language', 'eng');
-      formData.append('isOverlayRequired', 'false');
-      formData.append('scale', 'true');
-      formData.append('detectOrientation', 'true');
-
-      const res = await fetch('https://api.ocr.space/parse/image', {
-        method: 'POST',
-        headers: { apikey: OCR_API_KEY },
-        body: formData,
-      });
-      const data = await res.json();
-
-      const raw = data.ParsedResults?.[0]?.ParsedText ?? '';
-      const name = extractCardName(raw);
+      const result = await TextRecognition.recognize(imageUri);
+      const name = extractCardName(result);
 
       if (name) {
         setSearchQuery(name);

@@ -13,10 +13,12 @@
       "backgroundColor": "#1a1a2e"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "bundleIdentifier": "com.paulguttin.pokecollect",
       "icon": "./assets/favicon_io/apple-touch-icon.png",
       "infoPlist": {
-        "NSCameraUsageDescription": "Utilisé pour scanner tes cartes Pokémon et les identifier automatiquement."
+        "NSCameraUsageDescription": "Utilisé pour scanner tes cartes Pokémon et les identifier automatiquement.",
+        "NSPhotoLibraryUsageDescription": "Accès à la galerie pour sélectionner une carte à identifier."
       }
     },
     "android": {

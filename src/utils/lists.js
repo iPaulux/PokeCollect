@@ -1,39 +1,35 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { readStore, writeStore } from './persist';
 
-const LISTS_KEY = 'custom_lists';
+const KEY = 'custom_lists';
 
 export async function getLists() {
-  try {
-    const raw = await AsyncStorage.getItem(LISTS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  const data = await readStore(KEY);
+  return data ?? {};
 }
 
-async function saveLists(lists) {
-  await AsyncStorage.setItem(LISTS_KEY, JSON.stringify(lists));
+async function save(lists) {
+  await writeStore(KEY, lists);
 }
 
 export async function createList(name) {
   const lists = await getLists();
   const id = `list_${Date.now()}`;
   lists[id] = { id, name, cards: {}, createdAt: Date.now() };
-  await saveLists(lists);
+  await save(lists);
   return lists;
 }
 
 export async function deleteList(listId) {
   const lists = await getLists();
   delete lists[listId];
-  await saveLists(lists);
+  await save(lists);
   return lists;
 }
 
 export async function renameList(listId, name) {
   const lists = await getLists();
   if (lists[listId]) lists[listId].name = name;
-  await saveLists(lists);
+  await save(lists);
   return lists;
 }
 
@@ -42,7 +38,7 @@ export async function addCardToList(listId, cardSnapshot) {
   const lists = await getLists();
   if (!lists[listId]) return lists;
   lists[listId].cards[cardSnapshot.id] = cardSnapshot;
-  await saveLists(lists);
+  await save(lists);
   return lists;
 }
 
@@ -50,7 +46,7 @@ export async function removeCardFromList(listId, cardId) {
   const lists = await getLists();
   if (!lists[listId]) return lists;
   delete lists[listId].cards[cardId];
-  await saveLists(lists);
+  await save(lists);
   return lists;
 }
 
