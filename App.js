@@ -78,35 +78,33 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#16213e', borderTopColor: '#2a2a4a' },
+        tabBarStyle: {
+          backgroundColor: '#16213e',
+          borderTopColor: '#2a2a4a',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
         tabBarActiveTintColor: '#E63F00',
         tabBarInactiveTintColor: '#555',
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarIconStyle: { display: 'none' },
       }}
     >
       <Tab.Screen
         name="SetsTab"
         component={SetsStack}
-        options={{
-          tabBarLabel: 'Collection',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>📦</Text>,
-        }}
+        options={{ tabBarLabel: '📦  Collection' }}
       />
       <Tab.Screen
         name="SearchTab"
         component={SearchStack}
-        options={{
-          tabBarLabel: 'Recherche',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>🔍</Text>,
-        }}
+        options={{ tabBarLabel: '🔍  Recherche' }}
       />
       <Tab.Screen
         name="ListsTab"
         component={ListsStack}
-        options={{
-          tabBarLabel: 'Mes Listes',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18 }}>📋</Text>,
-        }}
+        options={{ tabBarLabel: '📋  Mes Listes' }}
       />
     </Tab.Navigator>
   );

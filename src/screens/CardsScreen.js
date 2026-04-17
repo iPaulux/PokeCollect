@@ -14,6 +14,27 @@ import { getOwnedCards, toggleCard } from '../utils/storage';
 import { getCached, setCached } from '../utils/cache';
 import AddToListModal from '../components/AddToListModal';
 
+// Tri correct des cartes : numérique d'abord, puis alphanumériques (SV, TG, GG…)
+function sortCards(cards) {
+  return [...cards].sort((a, b) => {
+    const parse = (n) => {
+      const m = String(n).match(/^([a-zA-Z]*)(\d+)([a-zA-Z]*)$/);
+      if (!m) return { prefix: String(n), num: 0, suffix: '' };
+      return { prefix: m[1].toUpperCase(), num: parseInt(m[2], 10), suffix: m[3] };
+    };
+    const pa = parse(a.number);
+    const pb = parse(b.number);
+    if (pa.prefix !== pb.prefix) {
+      // Cartes sans préfixe (numéros purs) en premier
+      if (!pa.prefix) return -1;
+      if (!pb.prefix) return 1;
+      return pa.prefix.localeCompare(pb.prefix);
+    }
+    if (pa.num !== pb.num) return pa.num - pb.num;
+    return pa.suffix.localeCompare(pb.suffix);
+  });
+}
+
 export default function CardsScreen({ route }) {
   const { set } = route.params;
   const { width } = useWindowDimensions();
@@ -29,12 +50,12 @@ export default function CardsScreen({ route }) {
     const cacheKey = `cards:${set.id}`;
     (async () => {
       const cached = await getCached(cacheKey);
-      if (cached) { setCards(cached); setLoading(false); return; }
+      if (cached) { setCards(sortCards(cached)); setLoading(false); return; }
       const res = await fetch(
-        `https://api.pokemontcg.io/v2/cards?q=set.id:${set.id}&orderBy=number&pageSize=500`
+        `https://api.pokemontcg.io/v2/cards?q=set.id:${set.id}&pageSize=500`
       );
       const data = await res.json();
-      const result = data.data || [];
+      const result = sortCards(data.data || []);
       await setCached(cacheKey, result);
       setCards(result);
       setLoading(false);

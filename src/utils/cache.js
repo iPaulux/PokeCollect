@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TTL = 24 * 60 * 60 * 1000; // 24h
-const V = 'v2'; // bump to invalidate all caches
+const V = 'v3'; // bump to invalidate all caches
 
 export async function getCached(key) {
   try {
