@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import AddToListModal from '../components/AddToListModal';
+import CardDetailModal from '../components/CardDetailModal';
 import { getFrToEnMap, resolveSearchTerm } from '../utils/pokemonNames';
 
 const RARITIES = [
@@ -38,7 +38,7 @@ export default function SearchScreen() {
   const [owned, setOwned] = useState({});
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [listModalCard, setListModalCard] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
   const [translatedTerm, setTranslatedTerm] = useState(null); // pour afficher "Résultats pour X"
   const debounceRef = useRef(null);
 
@@ -174,14 +174,16 @@ export default function SearchScreen() {
             renderItem={({ item }) => {
               const isOwned = !!owned[item.id];
               return (
-                <View style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}>
-                  <TouchableOpacity style={styles.imgWrapper} onPress={() => handleToggle(item.id)}>
-                    <Image
-                      source={{ uri: item.images?.small }}
-                      style={[styles.cardImage, !isOwned && styles.cardImageGray]}
-                      resizeMode="contain"
-                    />
-                  </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
+                  onPress={() => setSelectedCard(item)}
+                  activeOpacity={0.85}
+                >
+                  <Image
+                    source={{ uri: item.images?.small }}
+                    style={[styles.cardImage, !isOwned && styles.cardImageGray]}
+                    resizeMode="contain"
+                  />
                   <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.cardSet} numberOfLines={1}>{item.set?.name}</Text>
                   {isOwned && (
@@ -189,23 +191,19 @@ export default function SearchScreen() {
                       <Text style={styles.badgeText}>✓</Text>
                     </View>
                   )}
-                  <TouchableOpacity
-                    style={styles.listBtn}
-                    onPress={() => setListModalCard(item)}
-                  >
-                    <Text style={styles.listBtnText}>📋</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               );
             }}
           />
         </>
       )}
 
-      <AddToListModal
-        visible={!!listModalCard}
-        card={listModalCard}
-        onClose={() => setListModalCard(null)}
+      <CardDetailModal
+        visible={!!selectedCard}
+        card={selectedCard}
+        owned={!!owned[selectedCard?.id]}
+        onToggle={() => selectedCard && handleToggle(selectedCard.id)}
+        onClose={() => setSelectedCard(null)}
       />
     </View>
   );
@@ -230,12 +228,14 @@ const styles = StyleSheet.create({
   },
   rarityScroll: {
     flexGrow: 0,
+    flexShrink: 0,
   },
   rarityRow: {
     paddingHorizontal: 12,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 10,
     gap: 6,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   rarityBtn: {
     paddingHorizontal: 12,
@@ -305,7 +305,6 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 0.72,
   },
-  imgWrapper: { width: '100%' },
   cardImageGray: {
     opacity: 0.35,
   },
@@ -338,11 +337,4 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
-  listBtn: {
-    position: 'absolute',
-    bottom: 22,
-    right: 2,
-    padding: 2,
-  },
-  listBtnText: { fontSize: 12 },
 });

@@ -4,6 +4,7 @@ import {
   ScrollView, TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { PRICE_SOURCE, PRICE_UPDATED } from '../data/products';
 
 const TYPE_LABELS = {
   booster:  'Booster',
@@ -70,6 +71,9 @@ export default function ItemDetailScreen({ route }) {
           <Text style={styles.titleEn}>{product.name}</Text>
         )}
         <Text style={styles.price}>{product.price}</Text>
+        <Text style={styles.priceSource}>
+          Prix indicatif · {PRICE_SOURCE} · {PRICE_UPDATED}
+        </Text>
       </View>
 
       {/* Description */}
@@ -144,6 +148,7 @@ const styles = StyleSheet.create({
   title: { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 26 },
   titleEn: { color: '#666', fontSize: 13, marginTop: 4, fontStyle: 'italic' },
   price: { color: '#E63F00', fontSize: 18, fontWeight: '700', marginTop: 8 },
+  priceSource: { color: '#444', fontSize: 10, marginTop: 3, fontStyle: 'italic' },
 
   descBlock: {
     paddingHorizontal: 18, paddingVertical: 14,

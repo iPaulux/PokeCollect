@@ -12,7 +12,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 import { getCached, setCached } from '../utils/cache';
-import AddToListModal from '../components/AddToListModal';
+import CardDetailModal from '../components/CardDetailModal';
 
 // Tri correct des cartes : numérique d'abord, puis alphanumériques (SV, TG, GG…)
 function sortCards(cards) {
@@ -44,7 +44,7 @@ export default function CardsScreen({ route }) {
   const [owned, setOwned] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [listModalCard, setListModalCard] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
 
   useEffect(() => {
     const cacheKey = `cards:${set.id}`;
@@ -121,36 +121,36 @@ export default function CardsScreen({ route }) {
         renderItem={({ item }) => {
           const isOwned = !!owned[item.id];
           return (
-            <View style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}>
-              <TouchableOpacity style={styles.imgWrapper} onPress={() => handleToggle(item.id)}>
-                <Image
-                  source={{ uri: item.images?.small }}
-                  style={[styles.cardImage, !isOwned && styles.cardImageGray]}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
+              onPress={() => setSelectedCard(item)}
+              activeOpacity={0.85}
+            >
+              <Image
+                source={{ uri: item.images?.small }}
+                style={[styles.cardImage, !isOwned && styles.cardImageGray]}
+                resizeMode="contain"
+              />
               <Text style={styles.cardNumber}>#{item.number}</Text>
               {isOwned && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>✓</Text>
                 </View>
               )}
-              {/* Bouton Ajouter à une liste */}
-              <TouchableOpacity
-                style={styles.listBtn}
-                onPress={() => setListModalCard(item)}
-              >
-                <Text style={styles.listBtnText}>📋</Text>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />
 
-      <AddToListModal
-        visible={!!listModalCard}
-        card={listModalCard}
-        onClose={() => setListModalCard(null)}
+      <CardDetailModal
+        visible={!!selectedCard}
+        card={selectedCard}
+        owned={!!owned[selectedCard?.id]}
+        onToggle={async () => {
+          const updated = await handleToggle(selectedCard.id);
+          // owned state is updated inside handleToggle already
+        }}
+        onClose={() => setSelectedCard(null)}
       />
     </View>
   );
@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
   },
   cardOwned: { borderColor: '#E63F00', borderWidth: 2 },
   cardImage: { width: '100%', aspectRatio: 0.72 },
-  imgWrapper: { width: '100%' },
   cardImageGray: { opacity: 0.35 },
   cardNumber: { color: '#888', fontSize: 10, marginTop: 2 },
   badge: {
@@ -196,9 +195,4 @@ const styles = StyleSheet.create({
     width: 18, height: 18, justifyContent: 'center', alignItems: 'center',
   },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  listBtn: {
-    position: 'absolute', bottom: 22, right: 2,
-    padding: 2,
-  },
-  listBtnText: { fontSize: 12 },
 });
