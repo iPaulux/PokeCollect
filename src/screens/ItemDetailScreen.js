@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, Image, StyleSheet,
-  ScrollView, TouchableOpacity,
+  ScrollView, TouchableOpacity, Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PRICE_SOURCE, PRICE_UPDATED } from '../data/products';
@@ -110,7 +110,16 @@ export default function ItemDetailScreen({ route }) {
         ))}
       </Section>
 
-      {/* Bouton "Voir les cartes du set" */}
+      {/* Boutons */}
+      <TouchableOpacity
+        style={styles.cardmarketBtn}
+        onPress={() => Linking.openURL(
+          `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(product.name)}`
+        )}
+      >
+        <Text style={styles.cardmarketBtnText}>🛒  Voir sur Cardmarket</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.setBtn}
         onPress={() => navigation.navigate('SetsTab', {
@@ -171,8 +180,15 @@ const styles = StyleSheet.create({
   bullet: { color: '#E63F00', fontSize: 14, marginRight: 8, lineHeight: 20 },
   extraText: { color: '#ccc', fontSize: 13, flex: 1, lineHeight: 20 },
 
+  cardmarketBtn: {
+    marginHorizontal: 18, marginTop: 18, marginBottom: 0,
+    padding: 14, borderRadius: 12,
+    backgroundColor: '#1a2e1a', alignItems: 'center',
+    borderWidth: 1, borderColor: '#2a5c2a',
+  },
+  cardmarketBtnText: { color: '#4caf50', fontSize: 14, fontWeight: '700' },
   setBtn: {
-    margin: 18, padding: 14, borderRadius: 12,
+    margin: 18, marginTop: 10, padding: 14, borderRadius: 12,
     backgroundColor: '#16213e', alignItems: 'center',
     borderWidth: 1, borderColor: '#E63F00',
   },
