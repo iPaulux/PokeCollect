@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
@@ -15,6 +16,9 @@ import AddToListModal from '../components/AddToListModal';
 
 export default function CardsScreen({ route }) {
   const { set } = route.params;
+  const { width } = useWindowDimensions();
+  // grid padding 8px each side + card margin 4px each side × 3 cols
+  const CARD_WIDTH = (width - 16 - 24) / 3;
   const [cards, setCards] = useState([]);
   const [owned, setOwned] = useState({});
   const [loading, setLoading] = useState(true);
@@ -96,7 +100,7 @@ export default function CardsScreen({ route }) {
         renderItem={({ item }) => {
           const isOwned = !!owned[item.id];
           return (
-            <View style={[styles.cardCell, isOwned && styles.cardOwned]}>
+            <View style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}>
               <TouchableOpacity style={styles.imgWrapper} onPress={() => handleToggle(item.id)}>
                 <Image
                   source={{ uri: item.images?.small }}
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#fff' },
   grid: { padding: 8 },
   cardCell: {
-    flex: 1, margin: 4, borderRadius: 8, overflow: 'hidden',
+    margin: 4, borderRadius: 8, overflow: 'hidden',
     backgroundColor: '#16213e', alignItems: 'center', paddingBottom: 4,
     borderWidth: 1, borderColor: '#2a2a4a',
   },

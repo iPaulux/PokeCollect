@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,6 +30,8 @@ const RARITIES = [
 ];
 
 export default function SearchScreen() {
+  const { width } = useWindowDimensions();
+  const CARD_WIDTH = (width - 16 - 24) / 3;
   const [query, setQuery] = useState('');
   const [rarity, setRarity] = useState(null);
   const [cards, setCards] = useState([]);
@@ -171,7 +174,7 @@ export default function SearchScreen() {
             renderItem={({ item }) => {
               const isOwned = !!owned[item.id];
               return (
-                <View style={[styles.cardCell, isOwned && styles.cardOwned]}>
+                <View style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}>
                   <TouchableOpacity style={styles.imgWrapper} onPress={() => handleToggle(item.id)}>
                     <Image
                       source={{ uri: item.images?.small }}
@@ -285,7 +288,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   cardCell: {
-    flex: 1,
     margin: 4,
     borderRadius: 8,
     overflow: 'hidden',

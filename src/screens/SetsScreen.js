@@ -158,6 +158,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a2a4a',
   },
+  translatedNote: {
+    color: '#888',
+    fontSize: 11,
+    paddingHorizontal: 14,
+    marginTop: -6,
+    marginBottom: 6,
+  },
+  translatedWord: {
+    color: '#E63F00',
+    fontWeight: '700',
+  },
   list: {
     paddingHorizontal: 12,
     paddingBottom: 20,

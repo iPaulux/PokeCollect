@@ -7,12 +7,15 @@ import {
   Image,
   StyleSheet,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getLists, removeCardFromList } from '../utils/lists';
 import { getOwnedCards, toggleCard } from '../utils/storage';
 
 export default function ListDetailScreen({ route, navigation }) {
+  const { width } = useWindowDimensions();
+  const CARD_WIDTH = (width - 16 - 24) / 3;
   const { list: initialList } = route.params;
   const [cards, setCards] = useState(Object.values(initialList.cards || {}));
   const [owned, setOwned] = useState({});
@@ -116,7 +119,7 @@ export default function ListDetailScreen({ route, navigation }) {
           const isOwned = !!owned[item.id];
           return (
             <TouchableOpacity
-              style={[styles.cardCell, isOwned && styles.cardOwned]}
+              style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
               onPress={() => handleToggle(item.id)}
               onLongPress={() => handleRemove(item)}
             >
@@ -182,7 +185,6 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#fff' },
   grid: { padding: 8 },
   cardCell: {
-    flex: 1,
     margin: 4,
     borderRadius: 8,
     overflow: 'hidden',
