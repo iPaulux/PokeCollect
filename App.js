@@ -21,6 +21,7 @@ import ListsScreen from './src/screens/ListsScreen';
 import ListDetailScreen from './src/screens/ListDetailScreen';
 import ItemsScreen from './src/screens/ItemsScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
+import ScanScreen from './src/screens/ScanScreen';
 import { LanguageProvider, useLang, LANGUAGES } from './src/utils/LanguageContext';
 
 const Stack = createNativeStackNavigator();
@@ -85,6 +86,14 @@ function ListsStack() {
   );
 }
 
+function ScanStack() {
+  return (
+    <Stack.Navigator screenOptions={headerOpts}>
+      <Stack.Screen name="Scan" component={ScanScreen} options={{ title: 'Scanner une carte' }} />
+    </Stack.Navigator>
+  );
+}
+
 function ItemsStack() {
   return (
     <Stack.Navigator screenOptions={headerOpts}>
@@ -132,9 +141,14 @@ function AppTabs() {
         options={{ tabBarLabel: '📋 Lists' }}
       />
       <Tab.Screen
+        name="ScanTab"
+        component={ScanStack}
+        options={{ tabBarLabel: '📷 Scanner' }}
+      />
+      <Tab.Screen
         name="ItemsTab"
         component={ItemsStack}
-        options={{ tabBarLabel: '🛍️ Products' }}
+        options={{ tabBarLabel: '🛍️ Produits' }}
       />
     </Tab.Navigator>
   );

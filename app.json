@@ -14,14 +14,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/favicon_io/apple-touch-icon.png"
+      "icon": "./assets/favicon_io/apple-touch-icon.png",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Utilisé pour scanner tes cartes Pokémon et les identifier automatiquement."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/favicon_io/android-chrome-192x192.png",
         "backgroundColor": "#1a1a2e"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/favicon_io/favicon-32x32.png"
