@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import {
@@ -164,6 +164,13 @@ export default function App() {
     Poppins_700Bold,
     Poppins_800ExtraBold,
   });
+
+  useEffect(() => {
+    migrateFromAsyncStorage([
+      { asyncKey: 'owned_cards', storeKey: 'owned_cards' },
+      { asyncKey: 'custom_lists', storeKey: 'custom_lists' },
+    ]);
+  }, []);
 
   // On attend que les fonts soient prêtes avant de rendre quoi que ce soit
   if (!fontsLoaded) return null;

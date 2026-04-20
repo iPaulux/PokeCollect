@@ -3,7 +3,7 @@
  * → Survit aux mises à jour, aux rebuilds Xcode, et est sauvegardé iCloud.
  * → Migration automatique depuis AsyncStorage à la première ouverture.
  */
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DIR = FileSystem.documentDirectory + 'pokecollect/';
@@ -25,7 +25,8 @@ export async function readStore(key) {
     if (!info.exists) return null;
     const raw = await FileSystem.readAsStringAsync(path);
     return JSON.parse(raw);
-  } catch {
+  } catch (e) {
+    console.warn('[persist] readStore error:', e);
     return null;
   }
 }
@@ -36,6 +37,7 @@ export async function writeStore(key, value) {
     await FileSystem.writeAsStringAsync(path, JSON.stringify(value));
   } catch (e) {
     console.warn('[persist] writeStore error:', e);
+    throw e; // re-throw pour détecter les problèmes en dev
   }
 }
 
