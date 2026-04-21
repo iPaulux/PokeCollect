@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getOwnedCards, toggleCard } from '../utils/storage';
+import { getOwnedCards, toggleCard, getFavoriteCards, toggleFavoriteCard } from '../utils/storage';
 import { fonts } from '../utils/theme';
 import { getCached, setCached } from '../utils/cache';
 import CardDetailModal from '../components/CardDetailModal';
@@ -43,6 +43,7 @@ export default function CardsScreen({ route }) {
   const CARD_WIDTH = (width - 16 - 24) / 3;
   const [cards, setCards] = useState([]);
   const [owned, setOwned] = useState({});
+  const [favoriteCards, setFavoriteCards] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedCard, setSelectedCard] = useState(null);
@@ -63,11 +64,19 @@ export default function CardsScreen({ route }) {
     })();
   }, [set.id]);
 
-  useFocusEffect(useCallback(() => { getOwnedCards().then(setOwned); }, []));
+  useFocusEffect(useCallback(() => {
+    getOwnedCards().then(setOwned);
+    getFavoriteCards().then(setFavoriteCards);
+  }, []));
 
   const handleToggle = async (cardId) => {
     const updated = await toggleCard(cardId);
     setOwned({ ...updated });
+  };
+
+  const handleToggleFavorite = async (card) => {
+    const updated = await toggleFavoriteCard(card);
+    setFavoriteCards({ ...updated });
   };
 
   const ownedCount = cards.filter((c) => owned[c.id]).length;
@@ -121,6 +130,7 @@ export default function CardsScreen({ route }) {
         contentContainerStyle={styles.grid}
         renderItem={({ item }) => {
           const isOwned = !!owned[item.id];
+          const isFav = !!favoriteCards[item.id];
           return (
             <TouchableOpacity
               style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
@@ -138,6 +148,11 @@ export default function CardsScreen({ route }) {
                   <Text style={styles.badgeText}>✓</Text>
                 </View>
               )}
+              {isFav && (
+                <View style={styles.favBadge}>
+                  <Text style={styles.favBadgeText}>★</Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         }}
@@ -147,10 +162,9 @@ export default function CardsScreen({ route }) {
         visible={!!selectedCard}
         card={selectedCard}
         owned={!!owned[selectedCard?.id]}
-        onToggle={async () => {
-          const updated = await handleToggle(selectedCard.id);
-          // owned state is updated inside handleToggle already
-        }}
+        onToggle={() => handleToggle(selectedCard.id)}
+        favorited={!!favoriteCards[selectedCard?.id]}
+        onToggleFavorite={() => handleToggleFavorite(selectedCard)}
         onClose={() => setSelectedCard(null)}
       />
     </View>
@@ -196,4 +210,10 @@ const styles = StyleSheet.create({
     width: 18, height: 18, justifyContent: 'center', alignItems: 'center',
   },
   badgeText: { color: '#fff', fontSize: 10, fontFamily: fonts.bold },
+  favBadge: {
+    position: 'absolute', top: 4, left: 4,
+    backgroundColor: '#2e1f00', borderRadius: 10,
+    width: 18, height: 18, justifyContent: 'center', alignItems: 'center',
+  },
+  favBadgeText: { color: '#f1c40f', fontSize: 11 },
 });

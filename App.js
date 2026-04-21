@@ -23,6 +23,7 @@ import ListDetailScreen from './src/screens/ListDetailScreen';
 import ItemsScreen from './src/screens/ItemsScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import ScanScreen from './src/screens/ScanScreen';
+import FavoritesScreen from './src/screens/FavoritesScreen';
 import { LanguageProvider, useLang, LANGUAGES } from './src/utils/LanguageContext';
 
 const Stack = createNativeStackNavigator();
@@ -108,6 +109,19 @@ function ItemsStack() {
   );
 }
 
+function FavoritesStack() {
+  return (
+    <Stack.Navigator screenOptions={headerOpts}>
+      <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: 'Favoris' }} />
+      <Stack.Screen
+        name="FavCardsScreen"
+        component={CardsScreen}
+        options={({ route }) => ({ title: route.params.set.name })}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function AppTabs() {
   return (
     <Tab.Navigator
@@ -150,6 +164,11 @@ function AppTabs() {
         name="ItemsTab"
         component={ItemsStack}
         options={{ tabBarLabel: '🛍️ Produits' }}
+      />
+      <Tab.Screen
+        name="FavoritesTab"
+        component={FavoritesStack}
+        options={{ tabBarLabel: '★ Favoris' }}
       />
     </Tab.Navigator>
   );

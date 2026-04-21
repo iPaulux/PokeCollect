@@ -68,7 +68,7 @@ function PriceRow({ label, value, unit = '€', highlight }) {
   );
 }
 
-export default function CardDetailModal({ visible, card, owned, onToggle, onClose }) {
+export default function CardDetailModal({ visible, card, owned, onToggle, favorited, onToggleFavorite, onClose }) {
   const { width } = useWindowDimensions();
   const [fullCard, setFullCard] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -227,14 +227,23 @@ export default function CardDetailModal({ visible, card, owned, onToggle, onClos
 
             {/* Boutons */}
             <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.btnPrimary, owned && styles.btnOwned]}
-                onPress={onToggle}
-              >
-                <Text style={styles.btnPrimaryText}>
-                  {owned ? '✓  Possédée' : '+  Ma collection'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[styles.btnPrimary, styles.btnFlex, owned && styles.btnOwned]}
+                  onPress={onToggle}
+                >
+                  <Text style={styles.btnPrimaryText}>
+                    {owned ? '✓  Possédée' : '+  Ma collection'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.btnFavorite, favorited && styles.btnFavorited]}
+                  onPress={onToggleFavorite}
+                >
+                  <Text style={styles.btnFavoriteText}>{favorited ? '★' : '☆'}</Text>
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
                 style={styles.btnSecondary}
@@ -406,6 +415,8 @@ const styles = StyleSheet.create({
 
   /* Boutons */
   actions: { width: '100%', gap: 10 },
+  actionsRow: { flexDirection: 'row', gap: 10 },
+  btnFlex: { flex: 1 },
   btnPrimary: {
     backgroundColor: '#E63F00',
     borderRadius: 12,
@@ -414,6 +425,18 @@ const styles = StyleSheet.create({
   },
   btnOwned: { backgroundColor: '#1a4a1a', borderWidth: 1, borderColor: '#2a7a2a' },
   btnPrimaryText: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
+  btnFavorite: {
+    backgroundColor: '#16213e',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#2a2a4a',
+  },
+  btnFavorited: { backgroundColor: '#2e1f00', borderColor: '#f1c40f' },
+  btnFavoriteText: { fontSize: 22, color: '#f1c40f' },
   btnSecondary: {
     backgroundColor: '#1a1a2e',
     borderRadius: 12,
