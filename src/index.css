@@ -1,0 +1,35 @@
+/* ───── Reset ───── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #1a1a2e;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; }
+input, textarea { font-family: inherit; }
+img { display: block; }
+
+/* Scrollbar slim */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a4a transparent;
+}
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 2px; }
+
+/* Spinner animation pour ActivityIndicator */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Fade animation pour les modales */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* Safe-area insets pour les appareils à encoche */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }

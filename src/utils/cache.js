@@ -1,15 +1,27 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+/**
+ * Cache API via SQLite.
+ * TTL 24h, invalidé par le bump de version V.
+ */
+import { getDb, persistDb } from './db';
 
 const TTL = 24 * 60 * 60 * 1000; // 24h
-const V = 'v3'; // bump to invalidate all caches
+const V = 'v4'; // bump pour invalider tous les caches
+
+function prefixed(key) {
+  return `${V}:${key}`;
+}
 
 export async function getCached(key) {
   try {
-    const raw = await AsyncStorage.getItem(`cache:${V}:${key}`);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
+    const db = await getDb();
+    const result = db.exec(
+      'SELECT data, timestamp FROM api_cache WHERE cache_key = ?',
+      [prefixed(key)]
+    );
+    if (!result.length || !result[0].values.length) return null;
+    const [data, ts] = result[0].values[0];
     if (Date.now() - ts > TTL) return null;
-    return data;
+    return JSON.parse(data);
   } catch {
     return null;
   }
@@ -17,6 +29,13 @@ export async function getCached(key) {
 
 export async function setCached(key, data) {
   try {
-    await AsyncStorage.setItem(`cache:${V}:${key}`, JSON.stringify({ data, ts: Date.now() }));
-  } catch {}
+    const db = await getDb();
+    db.run(
+      'INSERT OR REPLACE INTO api_cache (cache_key, data, timestamp) VALUES (?, ?, ?)',
+      [prefixed(key), JSON.stringify(data), Date.now()]
+    );
+    await persistDb();
+  } catch (e) {
+    console.warn('[cache] setCached error:', e);
+  }
 }

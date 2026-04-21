@@ -4,6 +4,14 @@ const KEY = 'owned_cards';
 const FAV_CARDS_KEY = 'favorite_cards';
 const FAV_SETS_KEY = 'favorite_sets';
 
+// ownedVal peut être : true (ancien format) | { graded: false } | { graded: true, company, grade }
+export function getGradingInfo(ownedVal) {
+  if (ownedVal && typeof ownedVal === 'object' && ownedVal.graded === true) {
+    return ownedVal; // { graded: true, company: 'PSA', grade: '10' }
+  }
+  return null;
+}
+
 export async function getOwnedCards() {
   const data = await readStore(KEY);
   return data ?? {};
@@ -16,6 +24,14 @@ export async function toggleCard(cardId) {
   } else {
     owned[cardId] = true;
   }
+  await writeStore(KEY, owned);
+  return owned;
+}
+
+export async function setCardGrading(cardId, gradingData) {
+  const owned = await getOwnedCards();
+  if (!owned[cardId]) return owned;
+  owned[cardId] = gradingData; // { graded: false } | { graded: true, company, grade }
   await writeStore(KEY, owned);
   return owned;
 }
