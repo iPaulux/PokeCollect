@@ -129,27 +129,27 @@ function AppTabs() {
       <Tab.Screen
         name="SetsTab"
         component={SetsStack}
-        options={{ tabBarLabel: '📦 Home' }}
+        options={{ tabBarLabel: '📦' }}
       />
       <Tab.Screen
         name="SearchTab"
         component={SearchStack}
-        options={{ tabBarLabel: '🔍 Search' }}
+        options={{ tabBarLabel: '🔍' }}
       />
       <Tab.Screen
         name="ListsTab"
         component={ListsStack}
-        options={{ tabBarLabel: '📋 Lists' }}
+        options={{ tabBarLabel: '📋' }}
       />
       <Tab.Screen
         name="ScanTab"
         component={ScanStack}
-        options={{ tabBarLabel: '📷 Scanner' }}
+        options={{ tabBarLabel: '📷' }}
       />
       <Tab.Screen
         name="ItemsTab"
         component={ItemsStack}
-        options={{ tabBarLabel: '🛍️ Produits' }}
+        options={{ tabBarLabel: '🛍️' }}
       />
     </Tab.Navigator>
   );
