@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 const CACHE_KEY = 'fr_en_names_v2';
 const GRAPHQL_URL = 'https://beta.pokeapi.co/graphql/v1beta';
 
@@ -22,9 +20,9 @@ let _map = null; // { "salamèche": "charmander", ... }
 export async function getFrToEnMap() {
   if (_map && Object.keys(_map).length > 0) return _map;
 
-  // Cache AsyncStorage
+  // Cache localStorage
   try {
-    const cached = await AsyncStorage.getItem(CACHE_KEY);
+    const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       const parsed = JSON.parse(cached);
       if (Object.keys(parsed).length > 0) {
@@ -61,7 +59,7 @@ export async function getFrToEnMap() {
     }
 
     _map = map;
-    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(map));
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(map)); } catch {}
     return map;
   } catch {
     return {};
