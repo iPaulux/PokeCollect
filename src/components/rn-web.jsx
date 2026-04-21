@@ -9,6 +9,16 @@ import { createPortal } from 'react-dom';
 // ─── StyleSheet ──────────────────────────────────────────────────────────────
 export const StyleSheet = { create: (s) => s };
 
+// ─── Merge styles (supporte les tableaux comme React Native) ─────────────────
+// Transforme style={[a, b && c, { d: 1 }]} en objet plat pour le DOM.
+export function flatStyle(style) {
+  if (!style) return undefined;
+  if (Array.isArray(style)) {
+    return Object.assign({}, ...style.filter(Boolean).map(flatStyle));
+  }
+  return style;
+}
+
 // ─── Helpers style ───────────────────────────────────────────────────────────
 // React Native: View est flex column par défaut
 function viewBase(style) {
@@ -16,7 +26,7 @@ function viewBase(style) {
     display: 'flex',
     flexDirection: 'column',
     boxSizing: 'border-box',
-    ...style,
+    ...flatStyle(style),
   };
 }
 
@@ -41,7 +51,7 @@ export function Text({ style, numberOfLines, children, ...rest }) {
       }
     : {};
   return (
-    <span style={{ fontFamily: 'Poppins, sans-serif', ...clamp, ...style }} {...rest}>
+    <span style={{ fontFamily: 'Poppins, sans-serif', ...clamp, ...flatStyle(style) }} {...rest}>
       {children}
     </span>
   );
@@ -76,7 +86,7 @@ export function TouchableOpacity({
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
-        ...style,
+        ...flatStyle(style),
         opacity: disabled ? 0.5 : 1,
       }}
       onClick={disabled ? undefined : onPress}
@@ -105,7 +115,7 @@ export function Image({ source, style, resizeMode = 'cover', alt = '', ...rest }
     <img
       src={src}
       alt={alt}
-      style={{ objectFit: RESIZE_MAP[resizeMode] ?? 'cover', display: 'block', ...style }}
+      style={{ objectFit: RESIZE_MAP[resizeMode] ?? 'cover', display: 'block', ...flatStyle(style) }}
       {...rest}
     />
   );
@@ -134,7 +144,7 @@ export function TextInput({
     fontFamily: 'Poppins, sans-serif',
     fontSize: 'inherit',
     boxSizing: 'border-box',
-    ...style,
+    ...flatStyle(style),
   };
 
   const type = secureTextEntry
@@ -194,11 +204,11 @@ export function ScrollView({
         flex: 1,
         ...(!showsHorizontalScrollIndicator && { scrollbarWidth: 'none' }),
         ...(!showsVerticalScrollIndicator && { scrollbarWidth: 'none' }),
-        ...style,
+        ...flatStyle(style),
       }}
       {...rest}
     >
-      <div style={{ display: 'flex', flexDirection: horizontal ? 'row' : 'column', ...contentContainerStyle }}>
+      <div style={{ display: 'flex', flexDirection: horizontal ? 'row' : 'column', ...flatStyle(contentContainerStyle) }}>
         {children}
       </div>
     </div>
@@ -227,7 +237,7 @@ export function FlatList({
         overflow: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        ...style,
+        ...flatStyle(style),
       }}
     >
       {ListHeaderComponent}
@@ -239,7 +249,7 @@ export function FlatList({
             display: 'flex',
             flexDirection: numColumns > 1 ? 'row' : 'column',
             flexWrap: numColumns > 1 ? 'wrap' : 'nowrap',
-            ...contentContainerStyle,
+            ...flatStyle(contentContainerStyle),
           }}
         >
           {items.map((item, index) => (
@@ -263,8 +273,8 @@ export function SectionList({
   style,
 }) {
   return (
-    <div style={{ flex: 1, overflow: 'auto', ...style }}>
-      <div style={{ display: 'flex', flexDirection: 'column', ...contentContainerStyle }}>
+    <div style={{ flex: 1, overflow: 'auto', ...flatStyle(style) }}>
+      <div style={{ display: 'flex', flexDirection: 'column', ...flatStyle(contentContainerStyle) }}>
         {(sections || []).map((section, si) => (
           <div key={si}>
             {renderSectionHeader?.({ section })}

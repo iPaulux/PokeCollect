@@ -64,7 +64,8 @@ export default defineConfig({
     }),
   ],
   optimizeDeps: {
-    exclude: ['sql.js'],
+    // On inclut sql.js pour que Vite le pré-bundle (CJS→ESM) et expose proprement initSqlJs
+    include: ['sql.js'],
   },
   build: {
     target: 'esnext',

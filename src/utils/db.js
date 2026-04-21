@@ -69,7 +69,14 @@ export async function getDb() {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    const initSqlJs = (await import('sql.js')).default;
+    // sql.js est un module UMD — selon le bundler, initSqlJs peut être à différents niveaux
+    const mod = await import('sql.js');
+    const initSqlJs =
+      typeof mod === 'function' ? mod :
+      typeof mod.default === 'function' ? mod.default :
+      typeof mod.default?.default === 'function' ? mod.default.default :
+      null;
+    if (!initSqlJs) throw new Error('[db] Impossible de charger initSqlJs depuis sql.js');
     const SQL = await initSqlJs({ locateFile: () => '/sql-wasm.wasm' });
 
     const existing = await loadFromIDB();
