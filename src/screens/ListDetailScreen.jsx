@@ -6,7 +6,8 @@ import {
 } from '../components/rn-web';
 import { getLists, removeCardFromList } from '../utils/lists';
 import { fonts } from '../utils/theme';
-import { getOwnedCards, toggleCard, getGradingInfo } from '../utils/storage';
+import { getOwnedCards, toggleCard, getGradingInfo, getFavoriteCards, toggleFavoriteCard, setCardGrading } from '../utils/storage';
+import CardDetailModal from '../components/CardDetailModal';
 
 export default function ListDetailScreen({ onTitleChange }) {
   const { state } = useLocation();
@@ -15,11 +16,14 @@ export default function ListDetailScreen({ onTitleChange }) {
   const CARD_WIDTH = Math.floor((Math.min(width, 600) - 16 - 24) / 3);
   const [cards, setCards] = useState(Object.values(initialList?.cards || {}));
   const [owned, setOwned] = useState({});
+  const [favoriteCards, setFavoriteCards] = useState({});
   const [filter, setFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
+  const [selectedCard, setSelectedCard] = useState(null);
 
   useFocusEffect(useCallback(() => {
     getOwnedCards().then(setOwned);
+    getFavoriteCards().then(setFavoriteCards);
     if (!initialList?.id) return;
     getLists().then((lists) => {
       const updated = lists[initialList.id];
@@ -32,6 +36,16 @@ export default function ListDetailScreen({ onTitleChange }) {
 
   const handleToggle = async (cardId) => {
     const updated = await toggleCard(cardId);
+    setOwned({ ...updated });
+  };
+
+  const handleToggleFavorite = async (card) => {
+    const updated = await toggleFavoriteCard(card);
+    setFavoriteCards({ ...updated });
+  };
+
+  const handleSetGrading = async (cardId, gradingData) => {
+    const updated = await setCardGrading(cardId, gradingData);
     setOwned({ ...updated });
   };
 
@@ -74,7 +88,7 @@ export default function ListDetailScreen({ onTitleChange }) {
     return (
       <TouchableOpacity
         style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
-        onPress={() => handleToggle(item.id)}
+        onPress={() => setSelectedCard(item)}
         onLongPress={() => handleRemove(item)}
       >
         <Image source={{ uri: item.images?.small }} style={[styles.cardImage, !isOwned && styles.cardImageGray]} resizeMode="contain" />
@@ -96,7 +110,7 @@ export default function ListDetailScreen({ onTitleChange }) {
     return (
       <TouchableOpacity
         style={[styles.listRow, isOwned && styles.listRowOwned]}
-        onPress={() => handleToggle(item.id)}
+        onPress={() => setSelectedCard(item)}
         onLongPress={() => handleRemove(item)}
       >
         <Image source={{ uri: item.images?.small }} style={[styles.listThumb, !isOwned && styles.cardImageGray]} resizeMode="contain" />
@@ -148,6 +162,18 @@ export default function ListDetailScreen({ onTitleChange }) {
         numColumns={viewMode === 'grid' ? 3 : 1}
         contentContainerStyle={viewMode === 'grid' ? styles.grid : styles.listContainer}
         renderItem={viewMode === 'grid' ? renderGridItem : renderListItem}
+      />
+
+      <CardDetailModal
+        visible={!!selectedCard}
+        card={selectedCard}
+        owned={!!owned[selectedCard?.id]}
+        onToggle={() => selectedCard && handleToggle(selectedCard.id)}
+        favorited={!!favoriteCards[selectedCard?.id]}
+        onToggleFavorite={() => selectedCard && handleToggleFavorite(selectedCard)}
+        gradingData={getGradingInfo(owned[selectedCard?.id])}
+        onSetGrading={(data) => selectedCard && handleSetGrading(selectedCard.id, data)}
+        onClose={() => setSelectedCard(null)}
       />
     </View>
   );

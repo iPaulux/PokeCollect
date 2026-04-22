@@ -117,7 +117,7 @@ export default function SetsScreen() {
         </View>
         <TouchableOpacity
           style={[styles.favBtn, isFav && styles.favBtnActive]}
-          onPress={() => handleToggleFavoriteSet(item)}
+          onPress={(e) => { e.stopPropagation(); handleToggleFavoriteSet(item); }}
         >
           <Text style={[styles.favStar, isFav && styles.favStarActive]}>{isFav ? '★' : '☆'}</Text>
         </TouchableOpacity>
@@ -131,7 +131,7 @@ export default function SetsScreen() {
     const pct = item.total ? Math.round((ownedCount / item.total) * 100) : 0;
     return (
       <TouchableOpacity style={styles.gridCell} onPress={() => navigate(`/sets/${item.id}`, { state: { set: item } })}>
-        <TouchableOpacity style={[styles.gridFavBtn, isFav && styles.favBtnActive]} onPress={() => handleToggleFavoriteSet(item)}>
+        <TouchableOpacity style={[styles.gridFavBtn, isFav && styles.favBtnActive]} onPress={(e) => { e.stopPropagation(); handleToggleFavoriteSet(item); }}>
           <Text style={[styles.favStar, isFav && styles.favStarActive, { fontSize: 16 }]}>{isFav ? '★' : '☆'}</Text>
         </TouchableOpacity>
         <Image source={{ uri: item.images?.logo }} style={styles.gridLogo} resizeMode="contain" />

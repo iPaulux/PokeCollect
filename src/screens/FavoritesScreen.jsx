@@ -82,7 +82,7 @@ export default function FavoritesScreen() {
                   <Text style={styles.setName}>{item.name}</Text>
                   <Text style={styles.setMeta}>{item.series} · {item.total} cartes</Text>
                 </View>
-                <TouchableOpacity style={[styles.favBtn, isFav && styles.favBtnActive]} onPress={() => handleToggleFavoriteSet(item)}>
+                <TouchableOpacity style={[styles.favBtn, isFav && styles.favBtnActive]} onPress={(e) => { e.stopPropagation(); handleToggleFavoriteSet(item); }}>
                   <Text style={[styles.favStar, isFav && styles.favStarActive]}>★</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
@@ -98,7 +98,7 @@ export default function FavoritesScreen() {
                 <Text style={styles.cardMeta}>#{item.number}{item.set?.name ? `  ·  ${item.set.name}` : ''}</Text>
                 {isOwned && <Text style={styles.ownedTag}>✓ Possédée</Text>}
               </View>
-              <TouchableOpacity style={[styles.favBtn, isFav && styles.favBtnActive]} onPress={() => handleToggleFavoriteCard(item)}>
+              <TouchableOpacity style={[styles.favBtn, isFav && styles.favBtnActive]} onPress={(e) => { e.stopPropagation(); handleToggleFavoriteCard(item); }}>
                 <Text style={[styles.favStar, isFav && styles.favStarActive]}>★</Text>
               </TouchableOpacity>
             </TouchableOpacity>

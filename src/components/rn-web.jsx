@@ -9,23 +9,39 @@ import { createPortal } from 'react-dom';
 // ─── StyleSheet ──────────────────────────────────────────────────────────────
 export const StyleSheet = { create: (s) => s };
 
+// ─── Expo font name → CSS mapping ────────────────────────────────────────────
+const EXPO_FONT_MAP = {
+  Poppins_400Regular:    { fontFamily: "'Poppins', sans-serif", fontWeight: '400' },
+  Poppins_500Medium:     { fontFamily: "'Poppins', sans-serif", fontWeight: '500' },
+  Poppins_600SemiBold:   { fontFamily: "'Poppins', sans-serif", fontWeight: '600' },
+  Poppins_700Bold:       { fontFamily: "'Poppins', sans-serif", fontWeight: '700' },
+  Poppins_800ExtraBold:  { fontFamily: "'Poppins', sans-serif", fontWeight: '800' },
+};
+
 // ─── Merge styles (supporte les tableaux comme React Native) ─────────────────
 // Transforme style={[a, b && c, { d: 1 }]} en objet plat pour le DOM.
 export function flatStyle(style) {
   if (!style) return undefined;
   if (Array.isArray(style)) {
-    return Object.assign({}, ...style.filter(Boolean).map(flatStyle));
+    return flatStyle(Object.assign({}, ...style.filter(Boolean).map(flatStyle)));
+  }
+  // Map Expo font names → proper CSS fontFamily + fontWeight
+  if (style.fontFamily && EXPO_FONT_MAP[style.fontFamily]) {
+    return { ...style, ...EXPO_FONT_MAP[style.fontFamily] };
   }
   return style;
 }
 
 // ─── Helpers style ───────────────────────────────────────────────────────────
-// React Native: View est flex column par défaut
+// React Native: View est flex column par défaut.
+// minHeight: 0 est CRUCIAL : sans ça, les flex items ont min-height: auto
+// et ne peuvent pas se contraindre en-dessous de leur contenu → overflow/scroll cassé.
 function viewBase(style) {
   return {
     display: 'flex',
     flexDirection: 'column',
     boxSizing: 'border-box',
+    minHeight: 0,
     ...flatStyle(style),
   };
 }
@@ -83,13 +99,16 @@ export function TouchableOpacity({
         cursor: disabled ? 'not-allowed' : 'pointer',
         userSelect: 'none',
         WebkitTapHighlightColor: 'transparent',
+        // manipulation = taps instantanés sur mobile, sans bloquer le scroll parent
+        touchAction: 'manipulation',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
+        minHeight: 0,
         ...flatStyle(style),
         opacity: disabled ? 0.5 : 1,
       }}
-      onClick={disabled ? undefined : onPress}
+      onClick={disabled ? undefined : (e) => onPress?.(e)}
       onMouseDown={startLong}
       onMouseUp={cancelLong}
       onMouseLeave={cancelLong}
@@ -201,7 +220,12 @@ export function ScrollView({
         display: 'flex',
         flexDirection: horizontal ? 'row' : 'column',
         overflow: horizontal ? 'auto hidden' : 'hidden auto',
-        flex: 1,
+        // Pas de flex: 1 par défaut — les ScrollView verticaux qui doivent grandir
+        // doivent passer style={{ flex: 1 }} explicitement.
+        // Les ScrollView horizontaux (filtres) doivent rester à leur hauteur naturelle.
+        ...(horizontal
+          ? {}
+          : { flex: 1, minHeight: 0, touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }),
         ...(!showsHorizontalScrollIndicator && { scrollbarWidth: 'none' }),
         ...(!showsVerticalScrollIndicator && { scrollbarWidth: 'none' }),
         ...flatStyle(style),
@@ -234,9 +258,13 @@ export function FlatList({
     <div
       style={{
         flex: 1,
+        minHeight: 0,
         overflow: 'auto',
         display: 'flex',
         flexDirection: 'column',
+        // Mobile : touch-action autorise le scroll vertical même si un enfant a des handlers touch
+        touchAction: 'pan-y',
+        WebkitOverflowScrolling: 'touch',
         ...flatStyle(style),
       }}
     >
@@ -245,12 +273,19 @@ export function FlatList({
         ListEmptyComponent
       ) : (
         <div
-          style={{
-            display: 'flex',
-            flexDirection: numColumns > 1 ? 'row' : 'column',
-            flexWrap: numColumns > 1 ? 'wrap' : 'nowrap',
-            ...flatStyle(contentContainerStyle),
-          }}
+          style={
+            numColumns > 1
+              ? {
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${numColumns}, 1fr)`,
+                  ...flatStyle(contentContainerStyle),
+                }
+              : {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  ...flatStyle(contentContainerStyle),
+                }
+          }
         >
           {items.map((item, index) => (
             <React.Fragment key={keyExtractor ? keyExtractor(item) : index}>
@@ -273,7 +308,7 @@ export function SectionList({
   style,
 }) {
   return (
-    <div style={{ flex: 1, overflow: 'auto', ...flatStyle(style) }}>
+    <div style={{ flex: 1, minHeight: 0, overflow: 'auto', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch', ...flatStyle(style) }}>
       <div style={{ display: 'flex', flexDirection: 'column', ...flatStyle(contentContainerStyle) }}>
         {(sections || []).map((section, si) => (
           <div key={si}>

@@ -108,13 +108,16 @@ function BottomTabs() {
   );
 }
 
+// ─── Conteneur de page : flex column, prend toute la hauteur disponible ───────
+const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' };
+
 // ─── Écrans avec header ───────────────────────────────────────────────────────
 function SetsPage() {
   return (
-    <>
+    <div style={pageStyle}>
       <Header title="Collection" showLang />
       <SetsScreen />
-    </>
+    </div>
   );
 }
 
@@ -122,28 +125,28 @@ function CardsPage() {
   const { state } = useLocation();
   const title = state?.set?.name ?? 'Cartes';
   return (
-    <>
+    <div style={pageStyle}>
       <Header title={title} showBack />
       <CardsScreen />
-    </>
+    </div>
   );
 }
 
 function SearchPage() {
   return (
-    <>
+    <div style={pageStyle}>
       <Header title="Recherche" />
       <SearchScreen />
-    </>
+    </div>
   );
 }
 
 function ListsPage() {
   return (
-    <>
+    <div style={pageStyle}>
       <Header title="Mes Listes" />
       <ListsScreen />
-    </>
+    </div>
   );
 }
 
@@ -151,19 +154,19 @@ function ListDetailPage() {
   const { state } = useLocation();
   const [title, setTitle] = useState(state?.list?.name ?? 'Liste');
   return (
-    <>
+    <div style={pageStyle}>
       <Header title={title} showBack />
       <ListDetailScreen onTitleChange={setTitle} />
-    </>
+    </div>
   );
 }
 
 function FavoritesPage() {
   return (
-    <>
+    <div style={pageStyle}>
       <Header title="Favoris" />
       <FavoritesScreen />
-    </>
+    </div>
   );
 }
 
@@ -171,7 +174,7 @@ function FavoritesPage() {
 function AppLayout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: C.bg }}>
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Routes>
           <Route path="/"              element={<SetsPage />} />
           <Route path="/sets/:setId"   element={<CardsPage />} />

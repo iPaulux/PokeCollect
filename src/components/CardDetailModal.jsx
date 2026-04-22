@@ -108,23 +108,27 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/* Sheet — hauteur fixe 90vh pour que flex:1 sur l'inner div soit défini */}
       <div
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 901,
           backgroundColor: '#16213e',
           borderTopLeftRadius: 24, borderTopRightRadius: 24,
-          maxHeight: '90vh',
+          height: '90vh',
           border: '1px solid #2a2a4a',
           display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
           animation: 'slideUp 0.25s ease',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
-        <div style={{ width: 40, height: 4, backgroundColor: '#2a2a4a', borderRadius: 2, margin: '10px auto 0' }} />
+        <div style={{ width: 40, height: 4, backgroundColor: '#2a2a4a', borderRadius: 2, margin: '10px auto 0', flexShrink: 0 }} />
 
-        <div style={{ overflowY: 'auto', padding: '10px 20px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Outer div : scrollable, contraint par flex:1 dans le sheet */}
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+        {/* Inner wrapper : ne rétrécit jamais, pousse le scroll vers l'outer div */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 20px 40px', flexShrink: 0 }}>
           {/* Image */}
           <img
             src={display.images?.large ?? display.images?.small}
@@ -278,7 +282,8 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
               </TouchableOpacity>
             )}
           </View>
-        </div>
+        </div>{/* end inner wrapper */}
+        </div>{/* end outer scrollable */}
       </div>
 
       <AddToListModal visible={showListModal} card={display} onClose={() => setShowListModal(false)} />
@@ -311,12 +316,12 @@ const styles = StyleSheet.create({
   priceHighlight: { color: '#E63F00', fontSize: 14, fontFamily: fonts.extrabold },
   noPrice: { color: '#555', fontSize: 13 },
   actions: { width: '100%', gap: 10, display: 'flex', flexDirection: 'column' },
-  actionsRow: { flexDirection: 'row', gap: 10 },
-  btnFlex: { flex: 1 },
-  btnPrimary: { backgroundColor: '#E63F00', borderRadius: 12, paddingTop: 14, paddingBottom: 14, alignItems: 'center' },
+  actionsRow: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  btnFlex: { flex: 1, minWidth: 0 },
+  btnPrimary: { backgroundColor: '#E63F00', borderRadius: 12, paddingTop: 14, paddingBottom: 14, alignItems: 'center', justifyContent: 'center' },
   btnOwned: { backgroundColor: '#1a4a1a', border: '1px solid #2a7a2a' },
   btnPrimaryText: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
-  btnFavorite: { backgroundColor: '#16213e', borderRadius: 12, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a4a' },
+  btnFavorite: { backgroundColor: '#16213e', borderRadius: 12, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a4a', flexShrink: 0 },
   btnFavorited: { backgroundColor: '#2e1f00', border: '1px solid #f1c40f' },
   btnFavoriteText: { fontSize: 22, color: '#f1c40f' },
   btnSecondary: { backgroundColor: '#1a1a2e', borderRadius: 12, paddingTop: 13, paddingBottom: 13, alignItems: 'center', border: '1px solid #2a2a4a' },
