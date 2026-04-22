@@ -1,15 +1,20 @@
 # 📦 PokeCollect
 
-> Application mobile de suivi de collection de cartes Pokémon, construite avec React Native & Expo.
+> Application web progressive (PWA) de suivi de collection de cartes Pokémon, construite avec React + Vite.
 
 ---
 
 ## ✨ Fonctionnalités
 
-### 📦 Collection
+### 📦 Collection (Sets)
 - Parcours toutes les extensions TCG Pokémon triées par date de sortie
+- **Noms des sets en français** quand la langue FR est active (mapping statique complet)
+- **Tag PTCGO** affiché sur chaque set (ex : `MEW` pour 151, `ME2` pour Phantasmal Flames)
 - Recherche d'un set **en français ou en anglais** (`Évolutions Prismatiques`, `prismatique`, `écarlate`…)
 - Note indicative pour les langues FR 🇫🇷 et JA 🇯🇵 (visuels anglais, numérotation identique)
+- Vue **liste** ou **grille** au choix
+- Barre de progression par set (cartes possédées / total)
+- Favoris par set (étoile ★)
 
 ### 🃏 Cartes d'un set
 - Grille 3 colonnes avec l'image de chaque carte
@@ -24,6 +29,8 @@
 - Artiste · N° dans le set
 - **Prix du marché en temps réel** (Cardmarket + TCGPlayer) via l'API Pokémon TCG
 - Bouton **✓ Ma collection** — marquer comme possédée / non possédée
+- Bouton **★ Favoris** — ajouter/retirer des favoris
+- Section **🏆 Grading** — enregistrer le grade PSA / BGS / CGC / TAG / ACE
 - Bouton **📋 Ajouter à une liste** personnalisée
 - Bouton **🛒 Voir sur Cardmarket** — lien direct vers la fiche de la carte
 
@@ -37,22 +44,19 @@
 
 ### 📋 Mes Listes
 - **Créer** autant de listes personnalisées que souhaité (wishlist, échanges, master set…)
-- **Renommer** une liste via appui long
+- **Renommer** une liste :
+  - Via appui long sur la liste dans l'écran principal
+  - Via le bouton **✏️** dans l'en-tête de la liste ouverte
 - **Supprimer** une liste (confirmation)
-- Compteur possédées / total par liste
-- Détail d'une liste : même grille + progression + filtres
-- **Appui long sur une carte** dans une liste → la retirer
+- Compteur possédées / total + barre de progression par liste
+- Détail d'une liste : grille **ou** vue liste + filtres Toutes / Possédées / Manquantes
+- **Tap sur une carte** → ouvre la fiche détaillée (avec toggle collection, favoris, grading)
+- **Appui long sur une carte** → la retirer de la liste
 
-### 🛍️ Produits
-- Catalogue de produits TCG scellés : boosters, displays, ETB, tins, coffrets, decks
-- Filtres par type + barre de recherche (nom, set, série)
-- Logo du set affiché sur chaque produit
-- **Fiche produit** au tap :
-  - Contenu détaillé (boosters, cartes promo, accessoires…)
-  - Informations set & série, date de sortie
-  - **Prix indicatifs Cardmarket** (mis à jour avril 2026, reflètent le marché secondaire réel)
-  - Bouton **🛒 Voir sur Cardmarket** — recherche directe du produit
-  - Bouton **Voir les cartes du set →** — navigation vers la collection du set
+### ★ Favoris
+- Sets et cartes favoris regroupés dans un onglet dédié
+- Tap sur un set favori → navigation vers ses cartes
+- Tap sur une carte favorite → fiche détaillée
 
 ---
 
@@ -60,30 +64,33 @@
 
 ```
 PokeCollect/
-├── App.js                        # Navigation (tabs + stacks) + chargement fonts Poppins
-├── src/
-│   ├── screens/
-│   │   ├── SetsScreen.js         # Liste des extensions
-│   │   ├── CardsScreen.js        # Cartes d'un set
-│   │   ├── SearchScreen.js       # Recherche nom + rareté
-│   │   ├── ListsScreen.js        # Gestion des listes perso
-│   │   ├── ListDetailScreen.js   # Détail d'une liste
-│   │   ├── ItemsScreen.js        # Catalogue produits scellés
-│   │   └── ItemDetailScreen.js   # Fiche produit
-│   ├── components/
-│   │   ├── AnimatedSplash.js     # Splash screen animé (fade + scale + slide)
-│   │   ├── CardDetailModal.js    # Modal fiche carte (prix, rareté, collection, listes)
-│   │   └── AddToListModal.js     # Bottom sheet "Ajouter à une liste"
-│   ├── data/
-│   │   └── products.js           # Base de données statique des produits TCG (~35 références)
-│   └── utils/
-│       ├── theme.js              # Constantes globales (fonts Poppins, couleurs)
-│       ├── storage.js            # Cartes possédées (AsyncStorage)
-│       ├── lists.js              # Listes personnalisées (AsyncStorage)
-│       ├── cache.js              # Cache API 24h (AsyncStorage, version v3)
-│       ├── pokemonNames.js       # Traduction FR→EN des noms Pokémon (PokeAPI GraphQL)
-│       ├── setNames.js           # Traduction FR→EN des noms de sets (mapping statique)
-│       └── LanguageContext.js    # Contexte langue EN / FR / JA
+├── index.html
+├── vite.config.js
+└── src/
+    ├── App.jsx                     # Routing (HashRouter) + Header + BottomTabs
+    ├── main.jsx                    # Point d'entrée React
+    ├── screens/
+    │   ├── SetsScreen.jsx          # Liste des extensions (liste/grille, FR names, ptcgoCode)
+    │   ├── CardsScreen.jsx         # Cartes d'un set
+    │   ├── SearchScreen.jsx        # Recherche nom + rareté
+    │   ├── ListsScreen.jsx         # Gestion des listes perso
+    │   ├── ListDetailScreen.jsx    # Détail d'une liste (modal carte, renommage)
+    │   └── FavoritesScreen.jsx     # Favoris sets + cartes
+    ├── components/
+    │   ├── rn-web.jsx              # Shim React Native → DOM (View, Text, FlatList…)
+    │   ├── CardDetailModal.jsx     # Modal fiche carte (prix, rareté, grading, listes)
+    │   └── AddToListModal.jsx      # Bottom sheet "Ajouter à une liste"
+    ├── data/
+    │   └── products.js             # Base de données statique des produits TCG
+    └── utils/
+        ├── theme.js                # Constantes globales (fonts Poppins, couleurs)
+        ├── storage.js              # Cartes possédées + favoris + grading (localStorage)
+        ├── lists.js                # Listes personnalisées (localStorage)
+        ├── cache.js                # Cache API 24h (localStorage)
+        ├── persist.js              # Couche d'abstraction localStorage
+        ├── pokemonNames.js         # Traduction FR→EN des noms Pokémon (PokeAPI GraphQL)
+        ├── setNames.js             # Traduction FR↔EN des noms de sets + noms localisés
+        └── LanguageContext.jsx     # Contexte langue EN / FR / JA
 ```
 
 ---
@@ -92,11 +99,14 @@ PokeCollect/
 
 | API | Usage |
 |-----|-------|
-| [Pokémon TCG API](https://pokemontcg.io/) `v2` | Sets, cartes, images, **prix Cardmarket & TCGPlayer en temps réel** |
+| [Pokémon TCG API](https://pokemontcg.io/) `v2` | Sets (nom EN, logo, ptcgoCode), cartes, images, **prix Cardmarket & TCGPlayer en temps réel** |
 | [PokeAPI GraphQL](https://beta.pokeapi.co/graphql/v1beta) | Noms FR→EN des 1 025 Pokémon |
 
+> **Note** : L'API Pokémon TCG ne fournit pas de noms de sets en français. Les noms FR sont gérés via un mapping statique dans `setNames.js` (toutes les séries principales jusqu'en 2026 couvertes).
+
 ### Cache
-Toutes les données API sont mises en cache 24h dans `AsyncStorage` :
+
+Toutes les données API sont mises en cache 24h dans `localStorage` :
 
 | Clé | Contenu |
 |-----|---------|
@@ -107,28 +117,10 @@ Toutes les données API sont mises en cache 24h dans `AsyncStorage` :
 
 ---
 
-## 💶 Prix des produits
-
-Il n'existe pas d'API publique gratuite pour les produits scellés Pokémon (Cardmarket est fermé aux nouveaux développeurs). Les prix de l'onglet **Produits** sont des **prix relevés manuellement sur Cardmarket** — ils reflètent le marché secondaire, pas le MSRP :
-
-| Produit | Prix indicatif (avril 2026) |
-|---------|----------------------------|
-| Booster Évolutions Prismatiques | 9.50 € |
-| Display Évolutions Prismatiques | 295 € |
-| ETB Évolutions Prismatiques | 95 € |
-| Booster 151 | 7.50 € |
-| Display 151 | 220 € |
-| ETB 151 | 78 € |
-
-> Les prix des **cartes individuelles** sont en **temps réel** via l'API Pokémon TCG (source Cardmarket).
-
----
-
 ## 🎨 Design
 
 - **Police** : [Poppins](https://fonts.google.com/specimen/Poppins) (Google Fonts) — Regular, Medium, SemiBold, Bold, ExtraBold
 - **Thème** : sombre (`#1a1a2e` / `#16213e`) avec accent rouge `#E63F00`
-- **Splash screen** animé au lancement : scale-up du logo + slide du titre + fade-out
 
 ### Raretés abrégées (fiche carte)
 
@@ -149,7 +141,6 @@ Il n'existe pas d'API publique gratuite pour les produits scellés Pokémon (Car
 
 ### Prérequis
 - [Node.js](https://nodejs.org/) ≥ 18
-- [Expo Go](https://expo.dev/client) sur iPhone
 
 ### Installation
 
@@ -162,15 +153,14 @@ npm install
 ### Démarrage
 
 ```bash
-# Sur iPhone (via Expo Go)
-npm run start
-# Scanner le QR code avec l'app Expo Go
+# Serveur de développement
+npm run dev
 
-# Dans le navigateur web
-npm run web
+# Build de production
+npm run build
 
-# Simulateur iOS (macOS requis)
-npm run ios
+# Prévisualiser le build
+npm run preview
 ```
 
 ---
@@ -179,10 +169,10 @@ npm run ios
 
 | Onglet | Description |
 |:------:|-------------|
-| 📦 Collection | Tous les sets TCG, recherche FR/EN, navigation vers les cartes |
-| 🔍 Recherche | Recherche par nom Pokémon (FR/EN) + filtre rareté |
-| 📋 Mes Listes | Listes personnalisées (wishlist, master set, échanges…) |
-| 🛍️ Produits | Catalogue boosters/displays/ETB avec prix marché |
+| 📦 Home | Tous les sets TCG (noms FR, tag PTCGO, vue liste/grille, favoris) |
+| 🔍 Search | Recherche par nom Pokémon (FR/EN) + filtre rareté |
+| 📋 Lists | Listes personnalisées (wishlist, master set, échanges…) |
+| ★ Favoris | Sets et cartes mis en favoris |
 
 ---
 
@@ -190,12 +180,11 @@ npm run ios
 
 | Outil | Version |
 |-------|---------|
-| React Native | 0.81 |
-| Expo | ~54 |
-| React Navigation (native-stack + bottom-tabs) | 7.x |
-| AsyncStorage | 3.x |
-| Poppins (expo-google-fonts) | 0.4.x |
-| React Native Web | 0.21 |
+| React | 18 |
+| Vite | 6 |
+| React Router DOM | 6 |
+| rn-web shim | maison (View, Text, FlatList, Modal… → DOM) |
+| Poppins | Google Fonts (CDN) |
 
 ---
 

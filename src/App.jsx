@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.jsx';
+import { renameList } from './utils/lists';
 import SetsScreen from './screens/SetsScreen';
 import CardsScreen from './screens/CardsScreen';
 import SearchScreen from './screens/SearchScreen';
 import ListsScreen from './screens/ListsScreen';
 import ListDetailScreen from './screens/ListDetailScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
+import ProductsScreen from './screens/ProductsScreen';
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
@@ -35,7 +37,7 @@ function LangPicker() {
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-function Header({ title, showBack, showLang }) {
+function Header({ title, showBack, showLang, rightComponent }) {
   const navigate = useNavigate();
   return (
     <div style={{
@@ -57,20 +59,22 @@ function Header({ title, showBack, showLang }) {
           ‹
         </button>
       )}
-      <span style={{ flex: 1, fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 17, color: '#fff' }}>
+      <span style={{ flex: 1, fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 17, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {title}
       </span>
       {showLang && <LangPicker />}
+      {rightComponent}
     </div>
   );
 }
 
 // ─── Onglets du bas ───────────────────────────────────────────────────────────
 const TABS = [
-  { path: '/',          label: '📦 Home',     match: (p) => p === '/' || p.startsWith('/sets') },
-  { path: '/search',   label: '🔍 Search',   match: (p) => p.startsWith('/search') },
-  { path: '/lists',    label: '📋 Lists',    match: (p) => p.startsWith('/lists') },
-  { path: '/favorites',label: '★ Favoris',   match: (p) => p.startsWith('/favorites') },
+  { path: '/',           label: '📦 Home',     match: (p) => p === '/' || p.startsWith('/sets') },
+  { path: '/search',    label: '🔍 Search',   match: (p) => p.startsWith('/search') },
+  { path: '/lists',     label: '📋 Lists',    match: (p) => p.startsWith('/lists') },
+  { path: '/products',  label: '🛍️ Produits', match: (p) => p.startsWith('/products') },
+  { path: '/favorites', label: '★ Favoris',   match: (p) => p.startsWith('/favorites') },
 ];
 
 function BottomTabs() {
@@ -152,11 +156,106 @@ function ListsPage() {
 
 function ListDetailPage() {
   const { state } = useLocation();
+  const listId = state?.list?.id;
   const [title, setTitle] = useState(state?.list?.name ?? 'Liste');
+  const [renameVisible, setRenameVisible] = useState(false);
+  const [renameInput, setRenameInput] = useState('');
+  const inputRef = useRef(null);
+
+  const openRename = () => {
+    setRenameInput(title);
+    setRenameVisible(true);
+    // autofocus via ref après mount
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const confirmRename = async () => {
+    const name = renameInput.trim();
+    if (!name || !listId) return;
+    await renameList(listId, name);
+    setTitle(name);
+    setRenameVisible(false);
+  };
+
   return (
     <div style={pageStyle}>
-      <Header title={title} showBack />
+      <Header
+        title={title}
+        showBack
+        rightComponent={
+          <button
+            onClick={openRename}
+            title="Renommer la liste"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#888', fontSize: 17, padding: '4px 2px',
+              display: 'flex', alignItems: 'center', lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            ✏️
+          </button>
+        }
+      />
       <ListDetailScreen onTitleChange={setTitle} />
+
+      {/* Modal renommage */}
+      {renameVisible && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setRenameVisible(false)}
+        >
+          <div
+            style={{ backgroundColor: '#16213e', borderRadius: 14, padding: 20, width: '85%', maxWidth: 400, border: '1px solid #2a2a4a' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ color: '#fff', fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 16, margin: '0 0 14px 0' }}>
+              Renommer la liste
+            </p>
+            <input
+              ref={inputRef}
+              autoFocus
+              value={renameInput}
+              onChange={(e) => setRenameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') confirmRename();
+                if (e.key === 'Escape') setRenameVisible(false);
+              }}
+              placeholder="Nom de la liste..."
+              style={{
+                width: '100%', padding: '10px 12px',
+                backgroundColor: '#1a1a2e', border: '1px solid #2a2a4a',
+                borderRadius: 8, color: '#fff',
+                fontFamily: 'Poppins, sans-serif', fontSize: 15,
+                boxSizing: 'border-box', outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <button
+                onClick={() => setRenameVisible(false)}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, backgroundColor: '#2a2a4a', border: 'none', color: '#aaa', fontFamily: 'Poppins, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmRename}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, backgroundColor: '#E63F00', border: 'none', color: '#fff', fontFamily: 'Poppins, sans-serif', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+              >
+                Renommer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductsPage() {
+  return (
+    <div style={pageStyle}>
+      <Header title="Produits" />
+      <ProductsScreen />
     </div>
   );
 }
@@ -181,6 +280,7 @@ function AppLayout() {
           <Route path="/search"        element={<SearchPage />} />
           <Route path="/lists"         element={<ListsPage />} />
           <Route path="/lists/:listId" element={<ListDetailPage />} />
+          <Route path="/products"      element={<ProductsPage />} />
           <Route path="/favorites"     element={<FavoritesPage />} />
         </Routes>
       </div>

@@ -150,7 +150,11 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
           </View>
 
           {display.set && (
-            <Text style={styles.setLine}>{display.set.name}{display.set.series ? ` · ${display.set.series}` : ''}</Text>
+            <Text style={styles.setLine}>
+              {display.set.name}
+              {display.set.id ? <Text style={styles.setId}>{`  ${display.set.id.toUpperCase()}`}</Text> : null}
+              {display.set.series ? `  ·  ${display.set.series}` : ''}
+            </Text>
           )}
 
           <View style={styles.statsRow}>
@@ -300,6 +304,7 @@ const styles = StyleSheet.create({
   typeBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
   typeBadgeText: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
   setLine: { color: '#666', fontSize: 12, marginBottom: 14, textAlign: 'center' },
+  setId: { color: '#E63F00', fontFamily: fonts.bold },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16, flexWrap: 'wrap', justifyContent: 'center' },
   statCell: { backgroundColor: '#1a1a2e', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', border: '1px solid #2a2a4a' },
   rarityCell: { borderWidth: 2 },

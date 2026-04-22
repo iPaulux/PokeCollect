@@ -123,6 +123,29 @@ const WORD_FR_TO_EN = {
 const normalize = (str) =>
   str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
+// ─── Reverse mapping: EN set name (lowercase) → French name (sentence case) ──
+const _EN_TO_FR = {};
+for (const [fr, en] of Object.entries(SET_FR_TO_EN)) {
+  const key = en.toLowerCase();
+  if (!_EN_TO_FR[key]) {
+    // Skip identity entries ('scarlet & violet': 'scarlet & violet', '151': '151', etc.)
+    const frNorm = normalize(fr);
+    const enNorm = normalize(en);
+    if (frNorm !== enNorm) {
+      _EN_TO_FR[key] = fr.charAt(0).toUpperCase() + fr.slice(1);
+    }
+  }
+}
+
+/**
+ * Returns the localized set name when lang === 'fr', otherwise returns the original.
+ * Falls back to the English name if no French translation is available.
+ */
+export function getLocalizedSetName(setName, lang) {
+  if (lang !== 'fr' || !setName) return setName;
+  return _EN_TO_FR[setName.toLowerCase()] ?? setName;
+}
+
 /**
  * Traduit une query FR en EN pour rechercher dans les noms de sets.
  * Retourne { translated: string, wasFrench: boolean }
@@ -170,6 +193,7 @@ export function filterSets(sets, query) {
   return sets.filter((s) => {
     const name = normalize(s.name);
     const series = normalize(s.series || '');
-    return searchTerms.some((term) => name.includes(term) || series.includes(term));
+    const id = (s.id || '').toLowerCase();
+    return searchTerms.some((term) => name.includes(term) || series.includes(term) || id.includes(term.toLowerCase()));
   });
 }

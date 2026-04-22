@@ -7,7 +7,7 @@ import {
 import { useLang, LANGUAGES } from '../utils/LanguageContext.jsx';
 import { fonts } from '../utils/theme';
 import { getCached, setCached } from '../utils/cache';
-import { filterSets, resolveSetQuery } from '../utils/setNames';
+import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards } from '../utils/storage';
 
 const LANG_NOTE = {
@@ -106,11 +106,15 @@ export default function SetsScreen() {
   const renderListItem = ({ item }) => {
     const isFav = !!favoriteSets[item.id];
     const ownedCount = getSetOwnedCount(item.id);
+    const localName = getLocalizedSetName(item.name, lang);
     return (
       <TouchableOpacity style={styles.card} onPress={() => navigate(`/sets/${item.id}`, { state: { set: item } })}>
         <Image source={{ uri: item.images?.logo }} style={styles.logo} resizeMode="contain" />
         <View style={styles.info}>
-          <Text style={styles.setName}>{item.name}</Text>
+          <View style={styles.setNameRow}>
+            <Text style={styles.setName} numberOfLines={1}>{localName}</Text>
+            {item.id && <Text style={styles.ptcgoTag}>{item.id.toUpperCase()}</Text>}
+          </View>
           <Text style={styles.setMeta}>{item.series} · {item.total} cartes</Text>
           <Text style={styles.setDate}>{item.releaseDate}</Text>
           <ProgressBar value={ownedCount} total={item.total} />
@@ -129,13 +133,15 @@ export default function SetsScreen() {
     const isFav = !!favoriteSets[item.id];
     const ownedCount = getSetOwnedCount(item.id);
     const pct = item.total ? Math.round((ownedCount / item.total) * 100) : 0;
+    const localName = getLocalizedSetName(item.name, lang);
     return (
       <TouchableOpacity style={styles.gridCell} onPress={() => navigate(`/sets/${item.id}`, { state: { set: item } })}>
         <TouchableOpacity style={[styles.gridFavBtn, isFav && styles.favBtnActive]} onPress={(e) => { e.stopPropagation(); handleToggleFavoriteSet(item); }}>
           <Text style={[styles.favStar, isFav && styles.favStarActive, { fontSize: 16 }]}>{isFav ? '★' : '☆'}</Text>
         </TouchableOpacity>
         <Image source={{ uri: item.images?.logo }} style={styles.gridLogo} resizeMode="contain" />
-        <Text style={styles.gridName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.gridName} numberOfLines={2}>{localName}</Text>
+        {item.id && <Text style={styles.gridCode}>{item.id.toUpperCase()}</Text>}
         <View style={styles.gridProgressBg}>
           <View style={[styles.gridProgressFill, { width: `${pct}%` }]} />
         </View>
@@ -212,7 +218,9 @@ const styles = StyleSheet.create({
   },
   logo: { width: 80, height: 45, marginRight: 14 },
   info: { flex: 1 },
-  setName: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
+  setNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  setName: { color: '#fff', fontSize: 15, fontFamily: fonts.bold, flexShrink: 1 },
+  ptcgoTag: { color: '#888', fontSize: 10, fontFamily: fonts.bold, backgroundColor: '#2a2a4a', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, letterSpacing: 0.5 },
   setMeta: { color: '#aaa', fontSize: 12, marginTop: 3 },
   setDate: { color: '#666', fontSize: 11, marginTop: 2 },
   progressWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 6 },
@@ -232,7 +240,8 @@ const styles = StyleSheet.create({
   },
   gridFavBtn: { position: 'absolute', top: 6, right: 6, padding: 4, borderRadius: 6, zIndex: 1 },
   gridLogo: { width: '100%', height: 50, marginBottom: 6 },
-  gridName: { color: '#fff', fontSize: 11, fontFamily: fonts.bold, textAlign: 'center', marginBottom: 6 },
+  gridName: { color: '#fff', fontSize: 11, fontFamily: fonts.bold, textAlign: 'center', marginBottom: 3 },
+  gridCode: { color: '#666', fontSize: 9, fontFamily: fonts.bold, letterSpacing: 0.5, marginBottom: 5 },
   gridProgressBg: { width: '100%', height: 4, backgroundColor: '#2a2a4a', borderRadius: 2, overflow: 'hidden', marginBottom: 4 },
   gridProgressFill: { height: '100%', backgroundColor: '#E63F00', borderRadius: 2 },
   gridPct: { color: '#666', fontSize: 10 },
