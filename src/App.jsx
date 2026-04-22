@@ -9,6 +9,7 @@ import ListsScreen from './screens/ListsScreen';
 import ListDetailScreen from './screens/ListDetailScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
+import SplashScreen from './components/SplashScreen';
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
@@ -102,6 +103,7 @@ function BottomTabs() {
               color: active ? C.accent : '#555',
               fontFamily: 'Poppins, sans-serif', fontSize: 11, fontWeight: 600,
               transition: 'color 0.15s',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             }}
           >
             {tab.label}
@@ -112,7 +114,26 @@ function BottomTabs() {
   );
 }
 
-// ─── Conteneur de page : flex column, prend toute la hauteur disponible ───────
+// ─── Animated page wrapper — se re-monte à chaque changement d'onglet ─────────
+function AnimatedPage({ children }) {
+  const { pathname } = useLocation();
+  // On utilise uniquement le segment racine comme clé → animation au changement d'onglet
+  // mais pas lors des navigations internes (sets → cards)
+  const tab = '/' + (pathname.split('/')[1] || '');
+  return (
+    <div
+      key={tab}
+      style={{
+        display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden',
+        animation: 'tabFadeSlide 0.22s ease both',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Conteneur de page simple (navigation interne sans animation d'onglet) ────
 const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' };
 
 // ─── Écrans avec header ───────────────────────────────────────────────────────
@@ -165,7 +186,6 @@ function ListDetailPage() {
   const openRename = () => {
     setRenameInput(title);
     setRenameVisible(true);
-    // autofocus via ref après mount
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
@@ -199,7 +219,6 @@ function ListDetailPage() {
       />
       <ListDetailScreen onTitleChange={setTitle} />
 
-      {/* Modal renommage */}
       {renameVisible && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -274,15 +293,17 @@ function AppLayout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: C.bg }}>
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <Routes>
-          <Route path="/"              element={<SetsPage />} />
-          <Route path="/sets/:setId"   element={<CardsPage />} />
-          <Route path="/search"        element={<SearchPage />} />
-          <Route path="/lists"         element={<ListsPage />} />
-          <Route path="/lists/:listId" element={<ListDetailPage />} />
-          <Route path="/products"      element={<ProductsPage />} />
-          <Route path="/favorites"     element={<FavoritesPage />} />
-        </Routes>
+        <AnimatedPage>
+          <Routes>
+            <Route path="/"              element={<SetsPage />} />
+            <Route path="/sets/:setId"   element={<CardsPage />} />
+            <Route path="/search"        element={<SearchPage />} />
+            <Route path="/lists"         element={<ListsPage />} />
+            <Route path="/lists/:listId" element={<ListDetailPage />} />
+            <Route path="/products"      element={<ProductsPage />} />
+            <Route path="/favorites"     element={<FavoritesPage />} />
+          </Routes>
+        </AnimatedPage>
       </div>
       <BottomTabs />
     </div>
@@ -291,9 +312,11 @@ function AppLayout() {
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
   return (
     <HashRouter>
       <LanguageProvider>
+        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
         <AppLayout />
       </LanguageProvider>
     </HashRouter>
