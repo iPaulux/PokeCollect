@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.jsx';
 import { renameList } from './utils/lists';
+import { hydrateFromRemote } from './utils/persist';
+import { supabase } from './utils/supabase';
 import SetsScreen from './screens/SetsScreen';
 import CardsScreen from './screens/CardsScreen';
 import SearchScreen from './screens/SearchScreen';
@@ -10,6 +12,7 @@ import ListDetailScreen from './screens/ListDetailScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import SplashScreen from './components/SplashScreen';
+import AccountModal from './components/AccountModal';
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
@@ -138,10 +141,29 @@ const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight
 
 // ─── Écrans avec header ───────────────────────────────────────────────────────
 function SetsPage() {
+  const [accountVisible, setAccountVisible] = useState(false);
   return (
     <div style={pageStyle}>
-      <Header title="Collection" showLang />
+      <Header
+        title="Collection"
+        showLang
+        rightComponent={
+          <button
+            onClick={() => setAccountVisible(true)}
+            title="Mon compte"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 18, lineHeight: 1, padding: '4px 2px',
+              display: 'flex', alignItems: 'center', flexShrink: 0,
+              color: supabase ? '#4caf50' : '#555',
+            }}
+          >
+            ☁
+          </button>
+        }
+      />
       <SetsScreen />
+      <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} />
     </div>
   );
 }
@@ -313,6 +335,10 @@ function AppLayout() {
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
+
+  // Hydratation depuis Supabase au premier chargement (fire-and-forget)
+  useEffect(() => { hydrateFromRemote(); }, []);
+
   return (
     <HashRouter>
       <LanguageProvider>

@@ -1,11 +1,15 @@
 /**
- * Stockage persistant via SQLite (sql.js + IndexedDB).
- * API identique à l'ancienne version expo-file-system :
- *   readStore(key) → Promise<any | null>
- *   writeStore(key, value) → Promise<void>
+ * Stockage persistant — double couche :
+ *   1. SQLite local (sql.js + IndexedDB) → lecture rapide, offline
+ *   2. Supabase (PostgreSQL cloud) → persistance serveur, survie au cache clear
+ *
+ * Seules les clés "utilisateur" (owned_cards, favorites, lists) sont
+ * synchronisées vers Supabase. Le cache API ne quitte jamais le navigateur.
  */
 import { getDb, persistDb } from './db';
+import { supabase, getUserId, SYNC_KEYS } from './supabase';
 
+// ─── Lecture locale ───────────────────────────────────────────────────────────
 export async function readStore(key) {
   try {
     const db = await getDb();
@@ -18,16 +22,79 @@ export async function readStore(key) {
   }
 }
 
+// ─── Écriture locale + push Supabase (fire-and-forget) ───────────────────────
 export async function writeStore(key, value) {
   try {
     const db = await getDb();
-    db.run(
-      'INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)',
-      [key, JSON.stringify(value)]
-    );
+    const json = JSON.stringify(value);
+    db.run('INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)', [key, json]);
     await persistDb();
+
+    if (SYNC_KEYS.has(key) && supabase) {
+      supabase
+        .from('pokecollect_data')
+        .upsert({ user_id: getUserId(), key, value: json, updated_at: Date.now() })
+        .then(({ error }) => { if (error) console.warn('[sync] push error:', error.message); });
+    }
   } catch (e) {
     console.warn('[persist] writeStore error:', e);
     throw e;
   }
+}
+
+// ─── Hydratation initiale depuis Supabase → DB locale ────────────────────────
+export async function hydrateFromRemote() {
+  if (!supabase) return false;
+  try {
+    const { data, error } = await supabase
+      .from('pokecollect_data')
+      .select('key, value')
+      .eq('user_id', getUserId());
+
+    if (error) { console.warn('[sync] hydrate error:', error.message); return false; }
+    if (!data?.length) return false;
+
+    const db = await getDb();
+    for (const row of data) {
+      db.run('INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)', [row.key, row.value]);
+    }
+    await persistDb();
+    return true;
+  } catch (e) {
+    console.warn('[sync] hydrate error:', e);
+    return false;
+  }
+}
+
+// ─── Pousse toutes les clés locales vers Supabase (sync forcée) ──────────────
+export async function pushAllToRemote() {
+  if (!supabase) return false;
+  try {
+    const db = await getDb();
+    const result = db.exec('SELECT key, value FROM kv_store WHERE key IN (?, ?, ?, ?)', [
+      'owned_cards', 'favorite_cards', 'favorite_sets', 'custom_lists',
+    ]);
+    if (!result.length || !result[0].values.length) return false;
+
+    const userId = getUserId();
+    const rows = result[0].values.map(([key, value]) => ({
+      user_id: userId,
+      key,
+      value,
+      updated_at: Date.now(),
+    }));
+
+    const { error } = await supabase.from('pokecollect_data').upsert(rows);
+    if (error) { console.warn('[sync] pushAll error:', error.message); return false; }
+    return true;
+  } catch (e) {
+    console.warn('[sync] pushAll error:', e);
+    return false;
+  }
+}
+
+// ─── Supprime toutes les données distantes (reset complet) ───────────────────
+export async function purgeRemote() {
+  if (!supabase) return;
+  await supabase.from('pokecollect_data').delete().eq('user_id', getUserId());
 }
