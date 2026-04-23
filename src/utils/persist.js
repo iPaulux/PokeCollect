@@ -7,7 +7,7 @@
  * synchronisées vers Supabase. Le cache API ne quitte jamais le navigateur.
  */
 import { getDb, persistDb } from './db';
-import { supabase, getUserId, SYNC_KEYS } from './supabase';
+import { supabase, getAuthUserId, SYNC_KEYS } from './supabase';
 
 // ─── Lecture locale ───────────────────────────────────────────────────────────
 export async function readStore(key) {
@@ -31,10 +31,14 @@ export async function writeStore(key, value) {
     await persistDb();
 
     if (SYNC_KEYS.has(key) && supabase) {
-      supabase
-        .from('pokecollect_data')
-        .upsert({ user_id: getUserId(), key, value: json, updated_at: Date.now() })
-        .then(({ error }) => { if (error) console.warn('[sync] push error:', error.message); });
+      (async () => {
+        const userId = await getAuthUserId();
+        if (!userId) return;
+        supabase
+          .from('pokecollect_data')
+          .upsert({ user_id: userId, key, value: json, updated_at: Date.now() })
+          .then(({ error }) => { if (error) console.warn('[sync] push error:', error.message); });
+      })();
     }
   } catch (e) {
     console.warn('[persist] writeStore error:', e);
@@ -46,10 +50,13 @@ export async function writeStore(key, value) {
 export async function hydrateFromRemote() {
   if (!supabase) return false;
   try {
+    const userId = await getAuthUserId();
+    if (!userId) return false;
+
     const { data, error } = await supabase
       .from('pokecollect_data')
       .select('key, value')
-      .eq('user_id', getUserId());
+      .eq('user_id', userId);
 
     if (error) { console.warn('[sync] hydrate error:', error.message); return false; }
     if (!data?.length) return false;
@@ -70,13 +77,15 @@ export async function hydrateFromRemote() {
 export async function pushAllToRemote() {
   if (!supabase) return false;
   try {
+    const userId = await getAuthUserId();
+    if (!userId) return false;
+
     const db = await getDb();
     const result = db.exec('SELECT key, value FROM kv_store WHERE key IN (?, ?, ?, ?)', [
       'owned_cards', 'favorite_cards', 'favorite_sets', 'custom_lists',
     ]);
     if (!result.length || !result[0].values.length) return false;
 
-    const userId = getUserId();
     const rows = result[0].values.map(([key, value]) => ({
       user_id: userId,
       key,
@@ -96,5 +105,7 @@ export async function pushAllToRemote() {
 // ─── Supprime toutes les données distantes (reset complet) ───────────────────
 export async function purgeRemote() {
   if (!supabase) return;
-  await supabase.from('pokecollect_data').delete().eq('user_id', getUserId());
+  const userId = await getAuthUserId();
+  if (!userId) return;
+  await supabase.from('pokecollect_data').delete().eq('user_id', userId);
 }

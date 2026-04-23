@@ -1,10 +1,5 @@
 /**
- * Client Supabase + gestion de l'identifiant utilisateur (UUID).
- *
- * L'UUID est généré une fois et stocké dans localStorage.
- * Si localStorage est vidé, l'UUID est récupéré depuis la DB SQLite locale (kv_store).
- * En dernier recours, un nouvel UUID est généré (les données distantes sont récupérables
- * en entrant manuellement l'ancien UUID depuis les paramètres).
+ * Client Supabase + helpers d'authentification email/password.
  */
 import { createClient } from '@supabase/supabase-js';
 
@@ -22,29 +17,39 @@ function initSupabase() {
 }
 export const supabase = initSupabase();
 
-// ─── User ID ──────────────────────────────────────────────────────────────────
-const LS_KEY = 'pokecollect_uid';
-
-function newUUID() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
-
-export function getUserId() {
-  let id = localStorage.getItem(LS_KEY);
-  if (!id) {
-    id = newUUID();
-    localStorage.setItem(LS_KEY, id);
-  }
-  return id;
-}
-
-export function setUserId(id) {
-  localStorage.setItem(LS_KEY, id.trim());
-}
-
-// ─── Clés synchronisées (pas le cache API) ────────────────────────────────────
+// ─── Clés synchronisées (jamais le cache API) ─────────────────────────────────
 export const SYNC_KEYS = new Set(['owned_cards', 'favorite_cards', 'favorite_sets', 'custom_lists']);
+
+// ─── Auth helpers ─────────────────────────────────────────────────────────────
+
+/** Retourne l'ID de l'utilisateur connecté, ou null. */
+export async function getAuthUserId() {
+  if (!supabase) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+/** Retourne la session en cours, ou null. */
+export async function getSession() {
+  if (!supabase) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+}
+
+/** Inscription. */
+export async function signUp(email, password) {
+  if (!supabase) return { error: { message: 'Supabase non configuré' } };
+  return supabase.auth.signUp({ email, password });
+}
+
+/** Connexion. */
+export async function signIn(email, password) {
+  if (!supabase) return { error: { message: 'Supabase non configuré' } };
+  return supabase.auth.signInWithPassword({ email, password });
+}
+
+/** Déconnexion. */
+export async function signOut() {
+  if (!supabase) return;
+  return supabase.auth.signOut();
+}

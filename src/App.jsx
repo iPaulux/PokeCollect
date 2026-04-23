@@ -142,6 +142,19 @@ const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight
 // ─── Écrans avec header ───────────────────────────────────────────────────────
 function SetsPage() {
   const [accountVisible, setAccountVisible] = useState(false);
+  const [loggedIn, setLoggedIn]             = useState(false);
+
+  useEffect(() => {
+    if (!supabase) return;
+    // Vérifie la session initiale
+    supabase.auth.getSession().then(({ data: { session } }) => setLoggedIn(!!session));
+    // Écoute les changements d'état auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <div style={pageStyle}>
       <Header
@@ -155,7 +168,7 @@ function SetsPage() {
               background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 18, lineHeight: 1, padding: '4px 2px',
               display: 'flex', alignItems: 'center', flexShrink: 0,
-              color: supabase ? '#4caf50' : '#555',
+              color: loggedIn ? '#4caf50' : '#555',
             }}
           >
             ☁
@@ -336,8 +349,13 @@ function AppLayout() {
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
 
-  // Hydratation depuis Supabase au premier chargement (fire-and-forget)
-  useEffect(() => { hydrateFromRemote(); }, []);
+  // Hydratation depuis Supabase quand l'utilisateur est connecté
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) hydrateFromRemote();
+    });
+  }, []);
 
   return (
     <HashRouter>
