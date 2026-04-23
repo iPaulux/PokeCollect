@@ -128,13 +128,16 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
         {/* Outer div : scrollable, contraint par flex:1 dans le sheet */}
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
         {/* Inner wrapper : ne rétrécit jamais, pousse le scroll vers l'outer div */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 20px 40px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0 40px', flexShrink: 0 }}>
           {/* Image */}
           <img
             src={display.images?.large ?? display.images?.small}
             alt={display.name}
             style={{ width: 220, height: 308, objectFit: 'contain', marginBottom: 16 }}
           />
+
+          {/* Bloc infos */}
+          <div style={{ width: '100%', padding: '12px 16px 0', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
           <Text style={styles.cardName}>{display.name}</Text>
 
@@ -286,6 +289,8 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
               </TouchableOpacity>
             )}
           </View>
+
+          </div>{/* end infos block */}
         </div>{/* end inner wrapper */}
         </div>{/* end outer scrollable */}
       </div>
@@ -298,15 +303,15 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
 
 const styles = StyleSheet.create({
   cardName: { color: '#fff', fontSize: 20, fontFamily: fonts.extrabold, textAlign: 'center', marginBottom: 10 },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginBottom: 8 },
-  badge: { backgroundColor: '#1a1a2e', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, border: '1px solid #2a2a4a' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginBottom: 10 },
+  badge: { backgroundColor: '#1a1a2e', borderRadius: 8, paddingLeft: 10, paddingRight: 10, paddingTop: 6, paddingBottom: 6, border: '1px solid #2a2a4a' },
   badgeText: { color: '#aaa', fontSize: 11, fontFamily: fonts.semibold },
   typeBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
   typeBadgeText: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
   setLine: { color: '#666', fontSize: 12, marginBottom: 14, textAlign: 'center' },
   setId: { color: '#E63F00', fontFamily: fonts.bold },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16, flexWrap: 'wrap', justifyContent: 'center' },
-  statCell: { backgroundColor: '#1a1a2e', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', border: '1px solid #2a2a4a' },
+  statCell: { backgroundColor: '#1a1a2e', borderRadius: 10, paddingLeft: 16, paddingRight: 16, paddingTop: 10, paddingBottom: 10, alignItems: 'center', border: '1px solid #2a2a4a' },
   rarityCell: { borderWidth: 2 },
   statLabel: { color: '#666', fontSize: 10, marginBottom: 2 },
   statValue: { color: '#ddd', fontSize: 13, fontFamily: fonts.bold },
@@ -326,14 +331,14 @@ const styles = StyleSheet.create({
   btnPrimary: { backgroundColor: '#E63F00', borderRadius: 12, paddingTop: 14, paddingBottom: 14, alignItems: 'center', justifyContent: 'center' },
   btnOwned: { backgroundColor: '#1a4a1a', border: '1px solid #2a7a2a' },
   btnPrimaryText: { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
-  btnFavorite: { backgroundColor: '#16213e', borderRadius: 12, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a4a', flexShrink: 0 },
+  btnFavorite: { backgroundColor: '#16213e', borderRadius: 12, width: 52, height: 52, alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a4a', flexShrink: 0 },
   btnFavorited: { backgroundColor: '#2e1f00', border: '1px solid #f1c40f' },
   btnFavoriteText: { fontSize: 22, color: '#f1c40f' },
   btnSecondary: { backgroundColor: '#1a1a2e', borderRadius: 12, paddingTop: 13, paddingBottom: 13, alignItems: 'center', border: '1px solid #2a2a4a' },
   btnSecondaryText: { color: '#aaa', fontSize: 14, fontFamily: fonts.semibold },
   gradingSection: { borderRadius: 12, border: '1px solid #2a2a4a', overflow: 'hidden' },
-  gradingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 13, paddingBottom: 13, paddingHorizontal: 16, backgroundColor: '#1a1a2e' },
-  gradingHeaderText: { color: '#aaa', fontSize: 14, fontFamily: fonts.semibold },
+  gradingHeader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingTop: 13, paddingBottom: 13, paddingLeft: 16, paddingRight: 16, backgroundColor: '#1a1a2e' },
+  gradingHeaderText: { color: '#aaa', fontSize: 14, fontFamily: fonts.semibold, textAlign: 'center' },
   gradingChevron: { color: '#555', fontSize: 12 },
   gradingBody: { backgroundColor: '#111827', padding: 14, gap: 10, display: 'flex', flexDirection: 'column' },
   companyRow: { flexDirection: 'row', gap: 8 },
