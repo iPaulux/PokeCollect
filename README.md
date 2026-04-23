@@ -50,6 +50,7 @@
 - Résultats en grille cliquables → fiche détaillée
 
 ### 📋 Mes Listes
+- **Liste "Ma collection" épinglée** — non supprimable, affiche toutes les cartes possédées triées par date de sortie, avec icône Pokédex
 - Créer autant de listes que souhaité (wishlist, échanges, master set…)
 - Chaque liste dispose d'une **icône pokéball** au choix : Pokéball, Super Ball, Hyper Ball, Master Ball, Prémium, Guérison, Sombre, Chrono
 - Renommer et changer l'icône via la modale d'édition ou le bouton dans le header
@@ -58,10 +59,13 @@
 - Détail : vue grille ou liste, filtres Toutes / Possédées / Manquantes
 
 ### ★ Favoris
-- Sets et cartes favoris regroupés dans un onglet dédié
+- Sets, cartes **et produits** favoris regroupés dans un onglet dédié
+- Catégories déroulantes (Sets / Cartes / Produits) avec compteurs
 
 ### 🛍️ Produits
 - Catalogue de produits TCG scellés (boosters, ETB, displays…) avec filtres par catégorie
+- Images réelles des produits (visuels booster / ETB depuis pokemon.com et Bulbapedia)
+- Système de favoris ★ synchronisé
 - Lien direct vers Cardmarket pour chaque produit
 
 ### ☁ Sync serveur
@@ -84,9 +88,10 @@ src/
 │   ├── SearchScreen.jsx        # Recherche nom + rareté
 │   ├── ScanScreen.jsx          # Scanner une carte (caméra + numéro)
 │   ├── ListsScreen.jsx         # Listes personnalisées + pokéball picker
-│   ├── ListDetailScreen.jsx    # Détail d'une liste
-│   ├── FavoritesScreen.jsx     # Favoris sets + cartes
-│   └── ProductsScreen.jsx      # Catalogue produits scellés
+│   ├── FavoritesScreen.jsx     # Favoris sets + cartes + produits (sections déroulantes)
+│   ├── ProductsScreen.jsx      # Catalogue produits scellés (images, favoris, Cardmarket)
+│   ├── PokedexListScreen.jsx   # Vue "Ma collection" triée par date de sortie
+│   └── ListDetailScreen.jsx    # Détail d'une liste personnalisée
 ├── components/
 │   ├── AuthScreen.jsx          # Page de connexion / inscription
 │   ├── AccountModal.jsx        # Menu compte (sync, déconnexion)
@@ -211,7 +216,23 @@ netlify deploy --prod --dir dist_new
 | 🔍 | Search | Recherche par nom + rareté |
 | 📷 | Scan | Scanner une carte par caméra ou numéro |
 | 📋 | Lists | Listes personnalisées avec pokéballs |
-| ★ | Favoris | Sets et cartes mis en favoris |
+| ★ | Favoris | Sets, cartes et produits mis en favoris |
+| 🛍️ | Produits | Catalogue scellé avec images et favoris |
+
+---
+
+## Road map
+
+### Contenu & communauté
+- [ ] **Articles Pokémon** — flux d'actualités TCG (nouvelles extensions, annonces, meta) intégré dans l'app
+- [ ] **Dates des conventions** — calendrier des événements TCG français (JCC, tournois, conventions) avec rappels
+
+### Marché & prix
+- [ ] **Prix FR sur les cartes** — cotations en euros en temps réel depuis Cardmarket pour chaque carte de la collection
+- [ ] **Prix FR sur les produits** — mise à jour automatique des prix des boosters / ETB / displays depuis le marché français
+
+### Grading
+- [ ] **Sociétés de gradation françaises** — support de Beckett France, PGS (Pokémon Grading Services) et autres graders FR/EU en plus de PSA / BGS / CGC / TAG / ACE
 
 ---
 
