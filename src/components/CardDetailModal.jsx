@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginBottom: 10 },
   badge: { backgroundColor: '#1a1a2e', borderRadius: 8, paddingLeft: 10, paddingRight: 10, paddingTop: 6, paddingBottom: 6, border: '1px solid #2a2a4a' },
   badgeText: { color: '#aaa', fontSize: 11, fontFamily: fonts.semibold },
-  typeBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  typeBadge: { borderRadius: 8, paddingLeft: 10, paddingRight: 10, paddingTop: 6, paddingBottom: 6 },
   typeBadgeText: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
   setLine: { color: '#666', fontSize: 12, marginBottom: 14, textAlign: 'center' },
   setId: { color: '#E63F00', fontFamily: fonts.bold },
