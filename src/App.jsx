@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.jsx';
 import { renameList } from './utils/lists';
@@ -20,6 +20,20 @@ import PokeBallPicker, { PokeBallSVG, POKEBALLS } from './components/PokeBallPic
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
+
+// ─── Largeur sidebar desktop ──────────────────────────────────────────────────
+const SIDEBAR_W = 240;
+
+// ─── Hook : vrai si la fenêtre est ≥ 768px ────────────────────────────────────
+function useDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isDesktop;
+}
 
 // ─── Sélecteur de langue ──────────────────────────────────────────────────────
 function LangPicker() {
@@ -83,6 +97,7 @@ const TABS = [
   { path: '/scan',      label: 'Scan',     Icon: ScanLine,    match: (p) => p.startsWith('/scan') },
   { path: '/lists',     label: 'Lists',    Icon: List,        match: (p) => p.startsWith('/lists') },
   { path: '/favorites', label: 'Favoris',  Icon: Star,        match: (p) => p.startsWith('/favorites') },
+  { path: '/products',  label: 'Produits', Icon: ShoppingBag, match: (p) => p.startsWith('/products') },
 ];
 
 function BottomTabs() {
@@ -150,7 +165,7 @@ function AnimatedPage({ children }) {
 const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' };
 
 // ─── Écrans avec header ───────────────────────────────────────────────────────
-function SetsPage({ session }) {
+function SetsPage({ session, isDesktop }) {
   const [accountVisible, setAccountVisible] = useState(false);
 
   return (
@@ -159,22 +174,25 @@ function SetsPage({ session }) {
         title="Collection"
         showLang
         rightComponent={
-          <button
-            onClick={() => setAccountVisible(true)}
-            title="Mon compte"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '4px 2px',
-              display: 'flex', alignItems: 'center', flexShrink: 0,
-              color: '#4caf50',
-            }}
-          >
-            <img src="/TiploufICON.png" alt="compte" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
-          </button>
+          !isDesktop ? (
+            <button
+              onClick={() => setAccountVisible(true)}
+              title="Mon compte"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '4px 2px',
+                display: 'flex', alignItems: 'center', flexShrink: 0,
+              }}
+            >
+              <img src="/TiploufICON.png" alt="compte" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+            </button>
+          ) : null
         }
       />
       <SetsScreen />
-      <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} session={session} />
+      {!isDesktop && (
+        <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} session={session} />
+      )}
     </div>
   );
 }
@@ -255,7 +273,7 @@ function ListDetailPage() {
 
       {renameVisible && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="modal-backdrop" style={{ zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setRenameVisible(false)}
         >
           <div
@@ -334,25 +352,120 @@ function FavoritesPage() {
   );
 }
 
+// ─── Sidebar desktop ──────────────────────────────────────────────────────────
+function DesktopSidebar({ session, onAccountClick }) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  return (
+    <div style={{
+      width: SIDEBAR_W, flexShrink: 0,
+      backgroundColor: C.surface,
+      borderRight: `1px solid ${C.border}`,
+      display: 'flex', flexDirection: 'column',
+      height: '100%', overflow: 'hidden',
+    }}>
+      {/* Logo */}
+      <div style={{ padding: '18px 18px 14px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <img
+          src="/TiploufICON.png"
+          alt="logo"
+          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', display: 'block', flexShrink: 0 }}
+        />
+        <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15, color: '#fff' }}>
+          PokéCollect
+        </span>
+      </div>
+
+      <div style={{ height: 1, backgroundColor: C.border, flexShrink: 0 }} />
+
+      {/* Navigation */}
+      <nav style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+        {TABS.map(({ path, label, Icon, match }) => {
+          const active = match(pathname);
+          return (
+            <button
+              key={path}
+              className="sidebar-nav-btn"
+              onClick={() => navigate(path)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 10,
+                border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left',
+                backgroundColor: active ? '#2e1a0a' : 'transparent',
+                color: active ? C.accent : '#888',
+                fontFamily: 'Poppins, sans-serif', fontSize: 14,
+                fontWeight: active ? 700 : 500,
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
+              {label}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div style={{ height: 1, backgroundColor: C.border, flexShrink: 0 }} />
+
+      {/* Compte */}
+      <button
+        onClick={onAccountClick}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 14px', margin: '8px 10px',
+          borderRadius: 10, border: 'none', cursor: 'pointer',
+          backgroundColor: 'transparent', flexShrink: 0,
+        }}
+      >
+        <img
+          src="/TiploufICON.png"
+          alt="compte"
+          style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block', flexShrink: 0 }}
+        />
+        <span style={{
+          flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontFamily: 'Poppins, sans-serif', fontSize: 12, color: '#aaa',
+        }}>
+          {session?.user?.email ?? 'Mon compte'}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 // ─── Layout principal ─────────────────────────────────────────────────────────
 function AppLayout({ session }) {
+  const isDesktop = useDesktop();
+  const [accountVisible, setAccountVisible] = useState(false);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: C.bg }}>
-      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <AnimatedPage>
-          <Routes>
-            <Route path="/"              element={<SetsPage session={session} />} />
-            <Route path="/sets/:setId"   element={<CardsPage />} />
-            <Route path="/search"        element={<SearchPage />} />
-            <Route path="/scan"          element={<ScanPage />} />
-            <Route path="/lists"         element={<ListsPage />} />
-            <Route path="/lists/:listId" element={<ListDetailPage />} />
-            <Route path="/products"      element={<ProductsPage />} />
-            <Route path="/favorites"     element={<FavoritesPage />} />
-          </Routes>
-        </AnimatedPage>
+    <div style={{ display: 'flex', flexDirection: 'row', height: '100%', backgroundColor: C.bg }}>
+      {isDesktop && (
+        <DesktopSidebar session={session} onAccountClick={() => setAccountVisible(true)} />
+      )}
+
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <AnimatedPage>
+            <Routes>
+              <Route path="/"              element={<SetsPage session={session} isDesktop={isDesktop} />} />
+              <Route path="/sets/:setId"   element={<CardsPage />} />
+              <Route path="/search"        element={<SearchPage />} />
+              <Route path="/scan"          element={<ScanPage />} />
+              <Route path="/lists"         element={<ListsPage />} />
+              <Route path="/lists/:listId" element={<ListDetailPage />} />
+              <Route path="/products"      element={<ProductsPage />} />
+              <Route path="/favorites"     element={<FavoritesPage />} />
+            </Routes>
+          </AnimatedPage>
+        </div>
+        {!isDesktop && <BottomTabs />}
       </div>
-      <BottomTabs />
+
+      {isDesktop && (
+        <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} session={session} />
+      )}
     </div>
   );
 }

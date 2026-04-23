@@ -26,12 +26,14 @@ export default function AccountModal({ visible, onClose, session }) {
   return createPortal(
     <>
       <div
-        style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)' }}
+        className="modal-backdrop"
+        style={{ zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)' }}
         onClick={onClose}
       />
       <div
+        className="modal-sheet"
         style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
+          zIndex: 1001,
           backgroundColor: '#16213e', borderTopLeftRadius: 24, borderTopRightRadius: 24,
           border: '1px solid #2a2a4a', padding: '20px 20px 48px',
           animation: 'slideUp 0.25s ease',

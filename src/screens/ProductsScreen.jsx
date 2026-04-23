@@ -31,12 +31,14 @@ function ProductModal({ product, onClose }) {
   return createPortal(
     <>
       <div
-        style={{ position: 'fixed', inset: 0, zIndex: 900, backgroundColor: 'rgba(0,0,0,0.65)' }}
+        className="modal-backdrop"
+        style={{ zIndex: 900, backgroundColor: 'rgba(0,0,0,0.65)' }}
         onClick={onClose}
       />
       <div
+        className="modal-sheet"
         style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 901,
+          zIndex: 901,
           backgroundColor: '#16213e',
           borderTopLeftRadius: 24, borderTopRightRadius: 24,
           height: '88vh',

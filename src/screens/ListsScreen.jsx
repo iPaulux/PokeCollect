@@ -123,7 +123,7 @@ export default function ListsScreen() {
       {/* ── Modal création / édition ── */}
       {modalVisible && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="modal-backdrop" style={{ zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setModal(false)}
         >
           <div

@@ -38,7 +38,8 @@ export default function AddToListModal({ visible, card, onClose }) {
 
   return createPortal(
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
+      className="modal-backdrop"
+      style={{ zIndex: 1100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={onClose}
     >
       <div

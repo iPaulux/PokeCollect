@@ -53,3 +53,28 @@ img { display: block; }
 
 /* Safe-area insets pour les appareils à encoche */
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* ───── Modales (position via CSS pour pouvoir être overridée en desktop) ───── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+}
+.modal-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* ───── Desktop ≥ 768px ─────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  /* Modales offset par la sidebar */
+  .modal-backdrop { left: 240px; }
+  .modal-sheet    { left: 240px; }
+
+  /* Sidebar nav button hover */
+  .sidebar-nav-btn:hover {
+    background-color: #1e1e3a !important;
+    color: #ddd !important;
+  }
+}

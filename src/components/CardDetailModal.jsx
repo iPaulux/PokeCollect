@@ -104,14 +104,16 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
     <>
       {/* Backdrop */}
       <div
-        style={{ position: 'fixed', inset: 0, zIndex: 900, backgroundColor: 'rgba(0,0,0,0.6)' }}
+        className="modal-backdrop"
+        style={{ zIndex: 900, backgroundColor: 'rgba(0,0,0,0.6)' }}
         onClick={onClose}
       />
 
       {/* Sheet — hauteur fixe 90vh pour que flex:1 sur l'inner div soit défini */}
       <div
+        className="modal-sheet"
         style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 901,
+          zIndex: 901,
           backgroundColor: '#16213e',
           borderTopLeftRadius: 24, borderTopRightRadius: 24,
           height: '90vh',
