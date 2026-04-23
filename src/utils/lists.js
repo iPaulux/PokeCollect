@@ -11,10 +11,10 @@ async function save(lists) {
   await writeStore(KEY, lists);
 }
 
-export async function createList(name) {
+export async function createList(name, icon = 'poke') {
   const lists = await getLists();
   const id = `list_${Date.now()}`;
-  lists[id] = { id, name, cards: {}, createdAt: Date.now() };
+  lists[id] = { id, name, icon, cards: {}, createdAt: Date.now() };
   await save(lists);
   return lists;
 }
@@ -26,9 +26,12 @@ export async function deleteList(listId) {
   return lists;
 }
 
-export async function renameList(listId, name) {
+export async function renameList(listId, name, icon) {
   const lists = await getLists();
-  if (lists[listId]) lists[listId].name = name;
+  if (lists[listId]) {
+    lists[listId].name = name;
+    if (icon !== undefined) lists[listId].icon = icon;
+  }
   await save(lists);
   return lists;
 }

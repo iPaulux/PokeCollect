@@ -4,7 +4,7 @@ import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.js
 import { renameList } from './utils/lists';
 import { hydrateFromRemote } from './utils/persist';
 import { supabase } from './utils/supabase';
-import { Home, Search, List, ShoppingBag, Star, UserCircle, ChevronLeft } from 'lucide-react';
+import { Home, Search, List, ShoppingBag, Star, ChevronLeft, ScanLine } from 'lucide-react';
 import SetsScreen from './screens/SetsScreen';
 import CardsScreen from './screens/CardsScreen';
 import SearchScreen from './screens/SearchScreen';
@@ -12,9 +12,11 @@ import ListsScreen from './screens/ListsScreen';
 import ListDetailScreen from './screens/ListDetailScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
+import ScanScreen from './screens/ScanScreen';
 import SplashScreen from './components/SplashScreen';
 import AccountModal from './components/AccountModal';
 import AuthScreen from './components/AuthScreen';
+import PokeBallPicker, { PokeBallSVG, POKEBALLS } from './components/PokeBallPicker';
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
@@ -78,8 +80,8 @@ function Header({ title, showBack, showLang, rightComponent }) {
 const TABS = [
   { path: '/',           label: 'Home',     Icon: Home,        match: (p) => p === '/' || p.startsWith('/sets') },
   { path: '/search',    label: 'Search',   Icon: Search,      match: (p) => p.startsWith('/search') },
+  { path: '/scan',      label: 'Scan',     Icon: ScanLine,    match: (p) => p.startsWith('/scan') },
   { path: '/lists',     label: 'Lists',    Icon: List,        match: (p) => p.startsWith('/lists') },
-  { path: '/products',  label: 'Produits', Icon: ShoppingBag, match: (p) => p.startsWith('/products') },
   { path: '/favorites', label: 'Favoris',  Icon: Star,        match: (p) => p.startsWith('/favorites') },
 ];
 
@@ -167,7 +169,7 @@ function SetsPage({ session }) {
               color: '#4caf50',
             }}
           >
-            <UserCircle size={24} strokeWidth={1.8} />
+            <img src="/TiploufICON.png" alt="compte" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
           </button>
         }
       />
@@ -209,9 +211,10 @@ function ListsPage() {
 function ListDetailPage() {
   const { state } = useLocation();
   const listId = state?.list?.id;
-  const [title, setTitle] = useState(state?.list?.name ?? 'Liste');
+  const [title, setTitle]           = useState(state?.list?.name ?? 'Liste');
   const [renameVisible, setRenameVisible] = useState(false);
-  const [renameInput, setRenameInput] = useState('');
+  const [renameInput, setRenameInput]     = useState('');
+  const [iconInput, setIconInput]         = useState(state?.list?.icon ?? 'poke');
   const inputRef = useRef(null);
 
   const openRename = () => {
@@ -223,7 +226,7 @@ function ListDetailPage() {
   const confirmRename = async () => {
     const name = renameInput.trim();
     if (!name || !listId) return;
-    await renameList(listId, name);
+    await renameList(listId, name, iconInput);
     setTitle(name);
     setRenameVisible(false);
   };
@@ -236,15 +239,15 @@ function ListDetailPage() {
         rightComponent={
           <button
             onClick={openRename}
-            title="Renommer la liste"
+            title="Modifier la liste"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#888', fontSize: 17, padding: '4px 2px',
-              display: 'flex', alignItems: 'center', lineHeight: 1,
+              color: '#888', padding: '4px 2px',
+              display: 'flex', alignItems: 'center',
               flexShrink: 0,
             }}
           >
-            ✏️
+            <PokeBallSVG ball={(POKEBALLS.find((b) => b.id === (state?.list?.icon ?? 'poke')) ?? POKEBALLS[0])} size={26} />
           </button>
         }
       />
@@ -256,12 +259,13 @@ function ListDetailPage() {
           onClick={() => setRenameVisible(false)}
         >
           <div
-            style={{ backgroundColor: '#16213e', borderRadius: 14, padding: 20, width: '85%', maxWidth: 400, border: '1px solid #2a2a4a' }}
+            style={{ backgroundColor: '#16213e', borderRadius: 18, padding: '22px 20px', width: '90%', maxWidth: 420, border: '1px solid #2a2a4a' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p style={{ color: '#fff', fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 16, margin: '0 0 14px 0' }}>
-              Renommer la liste
+            <p style={{ color: '#fff', fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 16, margin: '0 0 18px 0' }}>
+              Modifier la liste
             </p>
+            <label style={{ display: 'block', fontFamily: 'Poppins, sans-serif', fontSize: 11, color: '#888', marginBottom: 5 }}>Nom</label>
             <input
               ref={inputRef}
               autoFocus
@@ -277,10 +281,12 @@ function ListDetailPage() {
                 backgroundColor: '#1a1a2e', border: '1px solid #2a2a4a',
                 borderRadius: 8, color: '#fff',
                 fontFamily: 'Poppins, sans-serif', fontSize: 15,
-                boxSizing: 'border-box', outline: 'none',
+                boxSizing: 'border-box', outline: 'none', marginBottom: 18,
               }}
             />
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <label style={{ display: 'block', fontFamily: 'Poppins, sans-serif', fontSize: 11, color: '#888', marginBottom: 10 }}>Icône</label>
+            <PokeBallPicker value={iconInput} onChange={setIconInput} />
+            <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
               <button
                 onClick={() => setRenameVisible(false)}
                 style={{ flex: 1, padding: '10px', borderRadius: 8, backgroundColor: '#2a2a4a', border: 'none', color: '#aaa', fontFamily: 'Poppins, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
@@ -297,6 +303,15 @@ function ListDetailPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ScanPage() {
+  return (
+    <div style={pageStyle}>
+      <Header title="Scanner une carte" />
+      <ScanScreen />
     </div>
   );
 }
@@ -329,6 +344,7 @@ function AppLayout({ session }) {
             <Route path="/"              element={<SetsPage session={session} />} />
             <Route path="/sets/:setId"   element={<CardsPage />} />
             <Route path="/search"        element={<SearchPage />} />
+            <Route path="/scan"          element={<ScanPage />} />
             <Route path="/lists"         element={<ListsPage />} />
             <Route path="/lists/:listId" element={<ListDetailPage />} />
             <Route path="/products"      element={<ProductsPage />} />
