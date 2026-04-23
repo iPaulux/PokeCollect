@@ -61,6 +61,34 @@ export async function toggleFavoriteCard(card) {
   return favs;
 }
 
+// ─── Favoris produits ────────────────────────────────────────────────────────
+const FAV_PRODUCTS_KEY = 'favorite_products';
+
+export async function getFavoriteProducts() {
+  const data = await readStore(FAV_PRODUCTS_KEY);
+  return data ?? {};
+}
+
+export async function toggleFavoriteProduct(product) {
+  const favs = await getFavoriteProducts();
+  if (favs[product.id]) {
+    delete favs[product.id];
+  } else {
+    favs[product.id] = {
+      id: product.id,
+      name: product.name,
+      nameFr: product.nameFr,
+      type: product.type,
+      setId: product.setId,
+      setName: product.setName,
+      price: product.price,
+      color: product.color,
+    };
+  }
+  await writeStore(FAV_PRODUCTS_KEY, favs);
+  return favs;
+}
+
 // ─── Favoris sets ────────────────────────────────────────────────────────────
 // Stocke { setId: { id, name, series, total, images, releaseDate } }
 

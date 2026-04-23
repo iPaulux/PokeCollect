@@ -10,6 +10,28 @@ import { getOwnedCards } from '../utils/storage';
 import PokeBallPicker, { PokeBallSVG, POKEBALLS } from '../components/PokeBallPicker';
 import { ChevronRight, Trash2 } from 'lucide-react';
 
+// ─── Icône Pokédex ────────────────────────────────────────────────────────────
+function PokedexIcon({ size = 40 }) {
+  const s = size;
+  return (
+    <svg width={s} height={s} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Corps */}
+      <rect x="4" y="4" width="32" height="32" rx="6" fill="#cc2200" />
+      {/* Bande centrale */}
+      <rect x="4" y="17" width="32" height="6" fill="#111" />
+      {/* Partie basse */}
+      <rect x="4" y="23" width="32" height="13" rx="0" fill="#eee" />
+      <rect x="4" y="30" width="32" height="6" rx="6" fill="#eee" />
+      {/* Bouton central */}
+      <circle cx="20" cy="20" r="5" fill="#fff" stroke="#111" strokeWidth="1.5" />
+      <circle cx="20" cy="20" r="2.5" fill="#cc2200" />
+      {/* Petits boutons gauche */}
+      <circle cx="10" cy="10" r="2" fill="#fff" opacity="0.6" />
+      <circle cx="15" cy="10" r="1.5" fill="#fff" opacity="0.4" />
+    </svg>
+  );
+}
+
 const ballById = (id) => POKEBALLS.find((b) => b.id === id) ?? POKEBALLS[0];
 
 export default function ListsScreen() {
@@ -50,11 +72,35 @@ export default function ListsScreen() {
   };
 
   const sorted = Object.values(lists).sort((a, b) => b.createdAt - a.createdAt);
+  const totalOwned = Object.keys(owned).length;
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.createBtn} onPress={openCreate}>
         <Text style={styles.createBtnText}>+ Nouvelle liste</Text>
+      </TouchableOpacity>
+
+      {/* ── Liste Pokédex épinglée ── */}
+      <TouchableOpacity
+        style={styles.pokedexCard}
+        onPress={() => navigate('/lists/__pokedex__')}
+      >
+        <div style={{ marginRight: 12, flexShrink: 0 }}>
+          <PokedexIcon size={40} />
+        </div>
+        <View style={styles.listInfo}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.pokedexName}>Ma collection</Text>
+            <View style={styles.pinnedBadge}>
+              <Text style={styles.pinnedBadgeText}>Épinglée</Text>
+            </View>
+          </View>
+          <Text style={styles.listMeta}>
+            {totalOwned} carte{totalOwned !== 1 ? 's' : ''} possédée{totalOwned !== 1 ? 's' : ''}
+            <Text style={styles.listOwned}> · triées par sortie</Text>
+          </Text>
+        </View>
+        <ChevronRight size={20} color="#444" strokeWidth={1.8} />
       </TouchableOpacity>
 
       {sorted.length === 0 ? (
@@ -188,6 +234,11 @@ const styles = StyleSheet.create({
   center:       { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 4 },
   empty:        { color: '#888', fontSize: 15, fontFamily: fonts.semibold },
   emptySub:     { color: '#555', fontSize: 13, marginTop: 4 },
+  // Pokédex card
+  pokedexCard:      { flexDirection: 'row', alignItems: 'center', marginLeft: 12, marginRight: 12, marginBottom: 10, backgroundColor: '#1a1020', borderRadius: 12, padding: 12, border: '1px solid #3a1a3a' },
+  pokedexName:      { color: '#fff', fontSize: 15, fontFamily: fonts.bold },
+  pinnedBadge:      { backgroundColor: '#2e0028', borderRadius: 6, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2 },
+  pinnedBadgeText:  { color: '#cc66cc', fontSize: 10, fontFamily: fonts.bold },
   list:         { paddingLeft: 12, paddingRight: 12, paddingBottom: 20 },
   listCard:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#16213e', borderRadius: 12, marginBottom: 10, padding: 12, border: '1px solid #2a2a4a' },
   listInfo:     { flex: 1 },

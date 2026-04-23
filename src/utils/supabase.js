@@ -18,7 +18,7 @@ function initSupabase() {
 export const supabase = initSupabase();
 
 // ─── Clés synchronisées (jamais le cache API) ─────────────────────────────────
-export const SYNC_KEYS = new Set(['owned_cards', 'favorite_cards', 'favorite_sets', 'custom_lists']);
+export const SYNC_KEYS = new Set(['owned_cards', 'favorite_cards', 'favorite_sets', 'custom_lists', 'favorite_products']);
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 

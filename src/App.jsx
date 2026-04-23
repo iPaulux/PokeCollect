@@ -10,6 +10,7 @@ import CardsScreen from './screens/CardsScreen';
 import SearchScreen from './screens/SearchScreen';
 import ListsScreen from './screens/ListsScreen';
 import ListDetailScreen from './screens/ListDetailScreen';
+import PokedexListScreen from './screens/PokedexListScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import ScanScreen from './screens/ScanScreen';
@@ -222,6 +223,15 @@ function ListsPage() {
     <div style={pageStyle}>
       <Header title="Mes Listes" />
       <ListsScreen />
+    </div>
+  );
+}
+
+function PokedexListPage() {
+  return (
+    <div style={pageStyle}>
+      <Header title="Ma collection" />
+      <PokedexListScreen />
     </div>
   );
 }
@@ -453,8 +463,9 @@ function AppLayout({ session }) {
               <Route path="/sets/:setId"   element={<CardsPage />} />
               <Route path="/search"        element={<SearchPage />} />
               <Route path="/scan"          element={<ScanPage />} />
-              <Route path="/lists"         element={<ListsPage />} />
-              <Route path="/lists/:listId" element={<ListDetailPage />} />
+              <Route path="/lists"                element={<ListsPage />} />
+              <Route path="/lists/__pokedex__"   element={<PokedexListPage />} />
+              <Route path="/lists/:listId"        element={<ListDetailPage />} />
               <Route path="/products"      element={<ProductsPage />} />
               <Route path="/favorites"     element={<FavoritesPage />} />
             </Routes>

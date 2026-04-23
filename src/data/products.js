@@ -4,6 +4,12 @@
 export const PRICE_SOURCE = 'Cardmarket';
 export const PRICE_UPDATED = 'avril 2026';
 
+// ─── Raccourcis CDN ───────────────────────────────────────────────────────────
+const PKM = (year, slug) =>
+  `https://www.pokemon.com/static-assets/content-assets/cms2/img/trading-card-game/series/incrementals/${year}/${slug}/${slug}-169-en.png`;
+const BG = (hash1, hash2, file, size = 400) =>
+  `https://archives.bulbagarden.net/media/upload/thumb/${hash1}/${hash2}/${file}/${size}px-${file}`;
+
 export const PRODUCT_TYPES = [
   { id: 'all',        label: 'Tous',       emoji: '🎴' },
   { id: 'booster',   label: 'Boosters',   emoji: '📦' },
@@ -15,7 +21,7 @@ export const PRODUCT_TYPES = [
 ];
 
 export const PRODUCTS = [
-  // ─── MEGA EVOLUTION (2025-2026) ───────────────────────────────────────────
+  // ─── MEGA EVOLUTION — PERFECT ORDER (2026) ───────────────────────────────
   {
     id: 'me3-booster',
     name: 'Booster Perfect Order',
@@ -26,6 +32,7 @@ export const PRODUCTS = [
     series: 'Mega Evolution',
     releaseDate: '2026/03/27',
     price: '4.80€',
+    image: PKM('2026', 'me03-booster-bundle'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: 'Booster de 10 cartes issu du set Ordre Parfait. Chaque booster contient au minimum une carte holographique.',
     color: '#1a3a5c',
@@ -40,10 +47,31 @@ export const PRODUCTS = [
     series: 'Mega Evolution',
     releaseDate: '2026/03/27',
     price: '152€',
+    image: PKM('2026', 'me03-booster-bundle'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters du set Ordre Parfait. Idéal pour construire une collection complète ou jouer en draft.',
     color: '#1a3a5c',
   },
+  {
+    id: 'me3-etb',
+    name: 'Elite Trainer Box Perfect Order',
+    nameFr: 'ETB Ordre Parfait',
+    type: 'etb',
+    setId: 'me3',
+    setName: 'Perfect Order',
+    series: 'Mega Evolution',
+    releaseDate: '2026/03/27',
+    price: '58€',
+    image: PKM('2026', 'me03-elite-trainer-box'),
+    contents: {
+      packs: 9, cardsPerPack: 10,
+      extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte de rangement'],
+    },
+    description: "L'ETB Ordre Parfait contient 9 boosters et des accessoires de jeu officiels aux couleurs du set.",
+    color: '#1a3a5c',
+  },
+
+  // ─── MEGA EVOLUTION — PHANTASMAL FLAMES (2025) ───────────────────────────
   {
     id: 'me2-booster',
     name: 'Booster Phantasmal Flames',
@@ -54,6 +82,7 @@ export const PRODUCTS = [
     series: 'Mega Evolution',
     releaseDate: '2025/11/14',
     price: '4.80€',
+    image: PKM('2025', 'me02-booster-bundle'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: 'Booster de 10 cartes issu du set Flammes Fantasmagoriques. Contient des cartes Mega Évolution inédites.',
     color: '#3a1a1a',
@@ -68,8 +97,27 @@ export const PRODUCTS = [
     series: 'Mega Evolution',
     releaseDate: '2025/11/14',
     price: '148€',
+    image: PKM('2025', 'me02-booster-bundle'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Flammes Fantasmagoriques.',
+    color: '#3a1a1a',
+  },
+  {
+    id: 'me2-etb',
+    name: 'Elite Trainer Box Phantasmal Flames',
+    nameFr: 'ETB Flammes Fantasmagoriques',
+    type: 'etb',
+    setId: 'me2',
+    setName: 'Phantasmal Flames',
+    series: 'Mega Evolution',
+    releaseDate: '2025/11/14',
+    price: '55€',
+    image: PKM('2025', 'me02-elite-trainer-box'),
+    contents: {
+      packs: 9, cardsPerPack: 10,
+      extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte de rangement'],
+    },
+    description: "L'ETB Flammes Fantasmagoriques contient 9 boosters Mega Évolution et des accessoires officiels.",
     color: '#3a1a1a',
   },
 
@@ -84,6 +132,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/05/30',
     price: '4.60€',
+    image: BG('e', 'e2', 'SV10_Booster_Cynthia_Garchomp.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: 'Booster de 10 cartes du set Rivaux du Destin. Contient de nouvelles cartes ex et des illustrations rares.',
     color: '#2a1a3a',
@@ -98,6 +147,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/05/30',
     price: '145€',
+    image: PKM('2025', 'sv10-booster-bundle'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Rivaux du Destin.',
     color: '#2a1a3a',
@@ -112,9 +162,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/05/30',
     price: '57€',
+    image: BG('9', '94', 'SV10_Elite_Trainer_Box.png'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', '1 marqueur de dommages', '1 marqueur de statut', '1 boîte de rangement'],
     },
     description: "L'Elite Trainer Box Rivaux du Destin contient 9 boosters, des accessoires de jeu officiels et des protège-cartes aux couleurs du set.",
@@ -132,6 +182,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/03/28',
     price: '4.70€',
+    image: BG('1', '16', 'SV9_Booster_Lillie_Clefairy.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: 'Booster de 10 cartes du set Ensemble, on avance. Met en avant Pikachu et ses amis dans de nouvelles aventures.',
     color: '#1a2a3a',
@@ -146,6 +197,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/03/28',
     price: '148€',
+    image: PKM('2025', 'sv09-booster-bundle'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Ensemble, on avance.',
     color: '#1a2a3a',
@@ -160,9 +212,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/03/28',
     price: '58€',
+    image: BG('d', 'd1', 'SV9_Elite_Trainer_Box.png'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte de rangement'],
     },
     description: "ETB du set Ensemble, on avance avec 9 boosters et tous les accessoires nécessaires pour jouer.",
@@ -180,6 +232,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/01/17',
     price: '9.50€',
+    image: BG('5', '53', 'Prismatic_Evolutions_Booster_Eevee_Sylveon.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set Évolutions Prismatiques, célébrant les 151 formes d'Évoli avec des cartes illustrées par des artistes du monde entier.",
     color: '#2a1a4a',
@@ -194,6 +247,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/01/17',
     price: '295€',
+    image: BG('d', 'de', 'SV8.5_Booster_Bundle.png'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Évolutions Prismatiques. Très demandé pour les cartes Évoli et ses évolutions.',
     color: '#2a1a4a',
@@ -208,9 +262,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/01/17',
     price: '95€',
+    image: BG('c', 'ca', 'SV8.5_Elite_Trainer_Box.jpg'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes prismatiques', '45 cartes Énergie', 'marqueurs de dommages', '1 boîte de rangement'],
     },
     description: "L'ETB Évolutions Prismatiques est particulièrement recherché pour ses protège-cartes prismatiques aux couleurs d'Évoli.",
@@ -226,9 +280,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2025/01/17',
     price: '48€',
+    image: BG('5', '53', 'Prismatic_Evolutions_Booster_Eevee_Sylveon.png'),
     contents: {
-      packs: 4,
-      cardsPerPack: 10,
+      packs: 4, cardsPerPack: 10,
       promoCards: 1,
       extras: ['1 carte promo Évoli', '1 coin'],
     },
@@ -247,6 +301,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/11/08',
     price: '5.20€',
+    image: BG('8', '8b', 'SV8_Booster_Pikachu.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set Étincelles Déferlantes. Met en avant Pikachu dans un set très riche en cartes Illustration Rare.",
     color: '#3a2a1a',
@@ -261,6 +316,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/11/08',
     price: '168€',
+    image: BG('8', '8b', 'SV8_Booster_Pikachu.png'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Étincelles Déferlantes.',
     color: '#3a2a1a',
@@ -275,9 +331,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/11/08',
     price: '58€',
+    image: PKM('2024', 'sv08-elite-trainer-box'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte'],
     },
     description: "ETB Étincelles Déferlantes avec 9 boosters et accessoires officiels.",
@@ -293,9 +349,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/11/08',
     price: '28€',
+    image: BG('8', '8b', 'SV8_Booster_Pikachu.png'),
     contents: {
-      packs: 3,
-      cardsPerPack: 10,
+      packs: 3, cardsPerPack: 10,
       promoCards: 1,
       extras: ['1 carte promo Pikachu ex'],
     },
@@ -303,7 +359,7 @@ export const PRODUCTS = [
     color: '#3a2a1a',
   },
 
-  // ─── STELLAR CROWN (2024) ────────────────────────────────────────────────
+  // ─── STELLAR CROWN (2024) ─────────────────────────────────────────────────
   {
     id: 'sv7-booster',
     name: 'Booster Stellar Crown',
@@ -314,6 +370,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/09/13',
     price: '4.20€',
+    image: BG('8', '8e', 'SV7_Booster_Terapagos.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set Couronne Stellaire, introduisant le type Stellaire et de nouvelles cartes Tera ex.",
     color: '#1a2a4a',
@@ -328,6 +385,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/09/13',
     price: '128€',
+    image: BG('e', 'e4', 'SV7_Booster_Display_Box.png'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Couronne Stellaire.',
     color: '#1a2a4a',
@@ -342,9 +400,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/09/13',
     price: '52€',
+    image: PKM('2024', 'sv07-elite-trainer-box'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires', '1 boîte'],
     },
     description: "ETB Couronne Stellaire avec 9 boosters et les accessoires officiels.",
@@ -362,6 +420,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/03/22',
     price: '4.10€',
+    image: BG('d', 'd7', 'SV5_Booster_Walking_Wake.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set Forces Temporelles. Introduit les cartes Pokémon ex à temps variable.",
     color: '#1a3a2a',
@@ -376,6 +435,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/03/22',
     price: '122€',
+    image: BG('d', 'd7', 'SV5_Booster_Walking_Wake.png'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters Forces Temporelles.',
     color: '#1a3a2a',
@@ -390,9 +450,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2024/03/22',
     price: '50€',
+    image: PKM('2024', 'sv05-elite-trainer-box'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires', '1 boîte'],
     },
     description: "ETB Forces Temporelles avec 9 boosters et accessoires officiels.",
@@ -410,6 +470,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/09/22',
     price: '7.50€',
+    image: BG('2', '24', '151_Booster.png'),
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set 151, célébrant les 151 Pokémon originaux de Kanto avec des cartes ex et des illustrations inédites.",
     color: '#3a1a2a',
@@ -424,6 +485,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/09/22',
     price: '220€',
+    image: BG('2', '24', '151_Booster.png'),
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters 151. Très prisé par les collectionneurs de la génération Kanto.',
     color: '#3a1a2a',
@@ -438,9 +500,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/09/22',
     price: '78€',
+    image: BG('f', 'f9', '151_Elite_Trainer_Box.jpg'),
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte numérotée'],
     },
     description: "ETB 151 très recherché pour ses protège-cartes et sa boîte de rangement numérotée à l'effigie des 151.",
@@ -456,9 +518,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/09/22',
     price: '42€',
+    image: BG('2', '24', '151_Booster.png'),
     contents: {
-      packs: 4,
-      cardsPerPack: 10,
+      packs: 4, cardsPerPack: 10,
       promoCards: 2,
       extras: ['2 cartes promo Mewtwo ex', '1 coin'],
     },
@@ -477,6 +539,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/03/31',
     price: '3.80€',
+    image: null,
     contents: { packs: 1, cardsPerPack: 10 },
     description: "Booster du set de base Écarlate et Violet. Inaugure la nouvelle génération avec les premiers Pokémon ex de cette ère.",
     color: '#2a2a1a',
@@ -491,6 +554,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/03/31',
     price: '105€',
+    image: null,
     contents: { packs: 36, cardsPerPack: 10, totalCards: 360 },
     description: 'Display de 36 boosters du set de base Écarlate et Violet.',
     color: '#2a2a1a',
@@ -505,9 +569,9 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/03/31',
     price: '48€',
+    image: null,
     contents: {
-      packs: 9,
-      cardsPerPack: 10,
+      packs: 9, cardsPerPack: 10,
       extras: ['65 protège-cartes', '45 cartes Énergie', 'accessoires de jeu', '1 boîte'],
     },
     description: "L'ETB de base de l'ère Écarlate et Violet. Disponible en version Koraidon ou Miraidon.",
@@ -525,6 +589,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/03/31',
     price: '13€',
+    image: null,
     contents: {
       totalCards: 60,
       extras: ['1 guide de jeu rapide', '1 règle du jeu', '1 marqueur de dommages', '1 coin'],
@@ -542,6 +607,7 @@ export const PRODUCTS = [
     series: 'Scarlet & Violet',
     releaseDate: '2023/03/31',
     price: '13€',
+    image: null,
     contents: {
       totalCards: 60,
       extras: ['1 guide de jeu rapide', '1 règle du jeu', '1 marqueur de dommages', '1 coin'],
