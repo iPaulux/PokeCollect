@@ -4,6 +4,7 @@ import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.js
 import { renameList } from './utils/lists';
 import { hydrateFromRemote } from './utils/persist';
 import { supabase } from './utils/supabase';
+import { Home, Search, List, ShoppingBag, Star, UserCircle, ChevronLeft } from 'lucide-react';
 import SetsScreen from './screens/SetsScreen';
 import CardsScreen from './screens/CardsScreen';
 import SearchScreen from './screens/SearchScreen';
@@ -13,6 +14,7 @@ import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import SplashScreen from './components/SplashScreen';
 import AccountModal from './components/AccountModal';
+import AuthScreen from './components/AuthScreen';
 
 // ─── Couleurs ─────────────────────────────────────────────────────────────────
 const C = { bg: '#1a1a2e', surface: '#16213e', border: '#2a2a4a', accent: '#E63F00' };
@@ -56,11 +58,11 @@ function Header({ title, showBack, showLang, rightComponent }) {
           onClick={() => navigate(-1)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: C.accent, fontSize: 22, lineHeight: 1, padding: 0,
+            color: C.accent, padding: 0,
             display: 'flex', alignItems: 'center',
           }}
         >
-          ‹
+          <ChevronLeft size={26} strokeWidth={2.5} />
         </button>
       )}
       <span style={{ flex: 1, fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 17, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -74,11 +76,11 @@ function Header({ title, showBack, showLang, rightComponent }) {
 
 // ─── Onglets du bas ───────────────────────────────────────────────────────────
 const TABS = [
-  { path: '/',           label: '📦 Home',     match: (p) => p === '/' || p.startsWith('/sets') },
-  { path: '/search',    label: '🔍 Search',   match: (p) => p.startsWith('/search') },
-  { path: '/lists',     label: '📋 Lists',    match: (p) => p.startsWith('/lists') },
-  { path: '/products',  label: '🛍️ Produits', match: (p) => p.startsWith('/products') },
-  { path: '/favorites', label: '★ Favoris',   match: (p) => p.startsWith('/favorites') },
+  { path: '/',           label: 'Home',     Icon: Home,        match: (p) => p === '/' || p.startsWith('/sets') },
+  { path: '/search',    label: 'Search',   Icon: Search,      match: (p) => p.startsWith('/search') },
+  { path: '/lists',     label: 'Lists',    Icon: List,        match: (p) => p.startsWith('/lists') },
+  { path: '/products',  label: 'Produits', Icon: ShoppingBag, match: (p) => p.startsWith('/products') },
+  { path: '/favorites', label: 'Favoris',  Icon: Star,        match: (p) => p.startsWith('/favorites') },
 ];
 
 function BottomTabs() {
@@ -92,24 +94,30 @@ function BottomTabs() {
         display: 'flex', flexShrink: 0,
         backgroundColor: C.surface,
         borderTop: `1px solid ${C.border}`,
-        height: 56,
+        height: 60,
       }}
     >
-      {TABS.map((tab) => {
-        const active = tab.match(pathname);
+      {TABS.map(({ path, label, Icon, match }) => {
+        const active = match(pathname);
         return (
           <button
-            key={tab.path}
-            onClick={() => navigate(tab.path)}
+            key={path}
+            onClick={() => navigate(path)}
             style={{
               flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-              color: active ? C.accent : '#555',
-              fontFamily: 'Poppins, sans-serif', fontSize: 11, fontWeight: 600,
+              color: active ? C.accent : '#4a4a6a',
               transition: 'color 0.15s',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 3, padding: 0,
             }}
           >
-            {tab.label}
+            <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+            <span style={{
+              fontFamily: 'Poppins, sans-serif', fontSize: 10, fontWeight: active ? 700 : 500,
+              lineHeight: 1,
+            }}>
+              {label}
+            </span>
           </button>
         );
       })}
@@ -140,20 +148,8 @@ function AnimatedPage({ children }) {
 const pageStyle = { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' };
 
 // ─── Écrans avec header ───────────────────────────────────────────────────────
-function SetsPage() {
+function SetsPage({ session }) {
   const [accountVisible, setAccountVisible] = useState(false);
-  const [loggedIn, setLoggedIn]             = useState(false);
-
-  useEffect(() => {
-    if (!supabase) return;
-    // Vérifie la session initiale
-    supabase.auth.getSession().then(({ data: { session } }) => setLoggedIn(!!session));
-    // Écoute les changements d'état auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setLoggedIn(!!session);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   return (
     <div style={pageStyle}>
@@ -166,17 +162,17 @@ function SetsPage() {
             title="Mon compte"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 18, lineHeight: 1, padding: '4px 2px',
+              padding: '4px 2px',
               display: 'flex', alignItems: 'center', flexShrink: 0,
-              color: loggedIn ? '#4caf50' : '#555',
+              color: '#4caf50',
             }}
           >
-            ☁
+            <UserCircle size={24} strokeWidth={1.8} />
           </button>
         }
       />
       <SetsScreen />
-      <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} />
+      <AccountModal visible={accountVisible} onClose={() => setAccountVisible(false)} session={session} />
     </div>
   );
 }
@@ -324,13 +320,13 @@ function FavoritesPage() {
 }
 
 // ─── Layout principal ─────────────────────────────────────────────────────────
-function AppLayout() {
+function AppLayout({ session }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: C.bg }}>
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <AnimatedPage>
           <Routes>
-            <Route path="/"              element={<SetsPage />} />
+            <Route path="/"              element={<SetsPage session={session} />} />
             <Route path="/sets/:setId"   element={<CardsPage />} />
             <Route path="/search"        element={<SearchPage />} />
             <Route path="/lists"         element={<ListsPage />} />
@@ -348,20 +344,39 @@ function AppLayout() {
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
+  const [session, setSession]       = useState(undefined); // undefined = chargement, null = déconnecté, objet = connecté
 
-  // Hydratation depuis Supabase quand l'utilisateur est connecté
   useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) hydrateFromRemote();
+    if (!supabase) { setSession(null); return; }
+
+    // Charge la session initiale
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s ?? null);
+      if (s) hydrateFromRemote();
     });
+
+    // Écoute les changements (login / logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s ?? null);
+      if (s) hydrateFromRemote();
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Chargement initial — on attend de savoir si connecté ou non
+  if (session === undefined) return null;
+
+  // Non connecté → page de connexion
+  if (!session) {
+    return <AuthScreen onAuth={() => {}} />;
+  }
+
+  // Connecté → app complète
   return (
     <HashRouter>
       <LanguageProvider>
         {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-        <AppLayout />
+        <AppLayout session={session} />
       </LanguageProvider>
     </HashRouter>
   );
