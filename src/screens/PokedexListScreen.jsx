@@ -9,9 +9,8 @@ import {
   toggleFavoriteCard, toggleCard, setCardGrading,
 } from '../utils/storage';
 import { getApiCache, setApiCache, SETS_TTL, CARDS_TTL } from '../utils/sharedCache';
+import { pokemonApiUrl } from '../utils/api';
 import CardDetailModal from '../components/CardDetailModal';
-
-const API = 'https://api.pokemontcg.io/v2';
 
 /** Extrait le setId depuis un cardId (ex: "sv3pt5-152" → "sv3pt5", "sv1-1" → "sv1") */
 function extractSetId(cardId) {
@@ -54,7 +53,7 @@ export default function PokedexListScreen() {
     try {
       let setsData = await getApiCache('sets:en', SETS_TTL);
       if (!setsData) {
-        const setsRes = await fetch(`${API}/sets?orderBy=-releaseDate&pageSize=250`).then((r) => r.json());
+        const setsRes = await fetch(pokemonApiUrl('/sets', { orderBy: '-releaseDate', pageSize: 250 })).then((r) => r.json());
         setsData = setsRes.data || [];
         await setApiCache('sets:en', setsData);
       }
@@ -76,7 +75,7 @@ export default function PokedexListScreen() {
         let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
         if (!allSetCards) {
           const res = await fetch(
-            `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
+            pokemonApiUrl('/cards', { q: `set.id:${sid}`, pageSize: 500, orderBy: 'number' })
           ).then((r) => r.json());
           allSetCards = res.data || [];
           await setApiCache(`cards:${sid}`, allSetCards);

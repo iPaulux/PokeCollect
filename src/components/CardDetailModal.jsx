@@ -5,6 +5,7 @@ import {
   StyleSheet, ActivityIndicator, Linking,
 } from './rn-web';
 import { getCached, setCached } from '../utils/cache';
+import { pokemonApiUrl } from '../utils/api';
 import { fonts } from '../utils/theme';
 import AddToListModal from './AddToListModal';
 
@@ -107,7 +108,7 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
       const cached = await getCached(cacheKey);
       if (cached) { setFullCard(cached); setLoading(false); return; }
       try {
-        const res = await fetch(`https://api.pokemontcg.io/v2/cards/${card.id}`);
+        const res = await fetch(pokemonApiUrl(`/cards/${card.id}`));
         const data = await res.json();
         await setCached(cacheKey, data.data);
         setFullCard(data.data);

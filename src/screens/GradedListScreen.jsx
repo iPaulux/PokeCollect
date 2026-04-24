@@ -10,9 +10,8 @@ import {
   toggleCard, setCardGrading,
 } from '../utils/storage';
 import { getApiCache, setApiCache, CARDS_TTL } from '../utils/sharedCache';
+import { pokemonApiUrl } from '../utils/api';
 import CardDetailModal from '../components/CardDetailModal';
-
-const API = 'https://api.pokemontcg.io/v2';
 
 /** Extrait le setId depuis un cardId */
 function extractSetId(cardId) {
@@ -108,7 +107,7 @@ export default function GradedListScreen() {
         let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
         if (!allSetCards) {
           const res = await fetch(
-            `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
+            pokemonApiUrl('/cards', { q: `set.id:${sid}`, pageSize: 500, orderBy: 'number' })
           ).then((r) => r.json());
           allSetCards = res.data || [];
           await setApiCache(`cards:${sid}`, allSetCards);

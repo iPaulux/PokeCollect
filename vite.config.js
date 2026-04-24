@@ -48,15 +48,32 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
         runtimeCaching: [
+          // ⚠️ On ne met PAS api.pokemontcg.io ici : les requêtes API sont
+          // déjà mises en cache côté app (SQLite + Supabase). Laisser le SW
+          // intercepter les appels API provoque des erreurs CORS en production
+          // car le SW fait un fetch() depuis son propre scope.
+
           {
-            urlPattern: /^https:\/\/api\.pokemontcg\.io\//,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'pokemon-api', expiration: { maxEntries: 200, maxAgeSeconds: 86400 } },
+            // Images pokemontcg.io — StaleWhileRevalidate (plus robuste que
+            // CacheFirst) : ne rejette jamais même si l'image n'existe pas.
+            // statuses: [0, 200] : accepte les réponses opaques cross-origin.
+            urlPattern: /^https:\/\/images\.pokemontcg\.io\//,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'pokemon-images',
+              expiration: { maxEntries: 2000, maxAgeSeconds: 604800 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
           },
           {
-            urlPattern: /^https:\/\/images\.pokemontcg\.io\//,
-            handler: 'CacheFirst',
-            options: { cacheName: 'pokemon-images', expiration: { maxEntries: 2000, maxAgeSeconds: 604800 } },
+            // Previews Reddit (actualités TCG)
+            urlPattern: /^https:\/\/(?:preview|external-preview|i)\.redd\.it\//,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'reddit-images',
+              expiration: { maxEntries: 200, maxAgeSeconds: 86400 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
           },
         ],
       },

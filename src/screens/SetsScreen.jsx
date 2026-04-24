@@ -8,6 +8,7 @@ import {
 import { useLang, LANGUAGES } from '../utils/LanguageContext.jsx';
 import { fonts } from '../utils/theme';
 import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
+import { pokemonApiUrl } from '../utils/api';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
 import ArticlesModal from '../components/ArticlesModal';
@@ -217,7 +218,7 @@ export default function SetsScreen() {
         // 3-tiers : local SQLite → Supabase → API
         const cached = await getApiCache(cacheKey, SETS_TTL);
         if (cached) { setSets(cached); setFiltered(cached); setLoading(false); return; }
-        const res = await fetch(`https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate&pageSize=250`);
+        const res = await fetch(pokemonApiUrl('/sets', { orderBy: '-releaseDate', pageSize: 250 }));
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const result = data.data || [];

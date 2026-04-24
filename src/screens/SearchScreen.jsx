@@ -7,6 +7,7 @@ import { getOwnedCards, toggleCard, getFavoriteCards, toggleFavoriteCard, setCar
 import { fonts } from '../utils/theme';
 import CardDetailModal from '../components/CardDetailModal';
 import { getFrToEnMap, resolveSearchTerm } from '../utils/pokemonNames';
+import { pokemonApiUrl } from '../utils/api';
 
 const RARITIES = [
   { label: 'Toutes', value: null },
@@ -54,7 +55,7 @@ export default function SearchScreen() {
     const parts = [];
     if (resolvedQ) parts.push(`name:"*${resolvedQ}*"`);
     if (r) parts.push(`rarity:"${r}"`);
-    const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(parts.join(' '))}&orderBy=name&pageSize=60&select=id,name,number,rarity,set.name,images`;
+    const url = pokemonApiUrl('/cards', { q: parts.join(' '), orderBy: 'name', pageSize: 60, select: 'id,name,number,rarity,set.name,images' });
     try {
       const res = await fetch(url);
       const data = await res.json();

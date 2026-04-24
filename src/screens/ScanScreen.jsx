@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ScanLine, CameraOff, Search, X, RotateCcw } from 'lucide-react';
 import { getOwnedCards, toggleCard, getFavoriteCards, toggleFavoriteCard } from '../utils/storage';
 import CardDetailModal from '../components/CardDetailModal';
+import { pokemonApiUrl } from '../utils/api';
 
 // ─── Helpers API ──────────────────────────────────────────────────────────────
 async function searchByNumber(number) {
   // Cherche dans tous les sets le numéro exact (ex: "163" ou "163/193")
   const clean = number.trim().replace(/\s+/g, '');
   const num = clean.includes('/') ? clean.split('/')[0] : clean;
-  const url = `https://api.pokemontcg.io/v2/cards?q=number:${encodeURIComponent(num)}&pageSize=30&select=id,name,number,rarity,set,images`;
+  const url = pokemonApiUrl('/cards', { q: `number:${num}`, pageSize: 30, select: 'id,name,number,rarity,set,images' });
   const res = await fetch(url);
   const json = await res.json();
   return json.data ?? [];

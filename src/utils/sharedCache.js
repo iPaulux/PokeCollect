@@ -69,6 +69,11 @@ export const CARDS_TTL = 30 * 24 * 60 * 60 * 1000;
 
 const SUPABASE_MAX_BYTES = 900_000; // ~900 KB — on évite les très gros sets
 
+// Si Supabase répond avec une erreur de table manquante (404/42P01),
+// on désactive l'accès Supabase pour le reste de la session afin d'éviter
+// de bloquer chaque requête avec un aller-retour réseau inutile.
+let supabaseApiCacheDisabled = false;
+
 /**
  * Lecture 3-tiers : local SQLite → Supabase → null.
  * @param {string} key   clé de cache (ex : "sets_all", "cards:sv3pt5")
@@ -80,14 +85,26 @@ export async function getApiCache(key, ttl = SETS_TTL) {
   if (local) return local;
 
   // 2. Supabase (cross-device / premier lancement)
-  if (supabase) {
+  if (supabase && !supabaseApiCacheDisabled) {
     try {
       const { data, error } = await supabase
         .from(TABLE)
         .select('value, updated_at')
         .eq('key', `api:${key}`)
         .maybeSingle();
-      if (!error && data && Date.now() - data.updated_at < ttl) {
+
+      // Table absente (404 / 42P01) → désactiver pour la session
+      if (error) {
+        const code = error.code || '';
+        const status = error.status || 0;
+        if (status === 404 || code === '42P01' || code === 'PGRST116') {
+          supabaseApiCacheDisabled = true;
+        }
+        // Dans tous les cas d'erreur : passer directement à l'API
+        return null;
+      }
+
+      if (data && Date.now() - data.updated_at < ttl) {
         const parsed = JSON.parse(data.value);
         await setCached(key, parsed); // rafraîchit le cache local
         return parsed;
@@ -107,14 +124,20 @@ export async function setApiCache(key, value) {
   // Toujours écrire en local
   await setCached(key, value);
 
-  // Écrire dans Supabase seulement si la taille est raisonnable
-  if (supabase) {
+  // Écrire dans Supabase seulement si la table existe et la taille est raisonnable
+  if (supabase && !supabaseApiCacheDisabled) {
     try {
       const payload = JSON.stringify(value);
       if (payload.length <= SUPABASE_MAX_BYTES) {
-        await supabase
+        const { error } = await supabase
           .from(TABLE)
           .upsert({ key: `api:${key}`, value: payload, updated_at: Date.now() });
+        if (error) {
+          const status = error.status || 0;
+          if (status === 404 || error.code === '42P01') {
+            supabaseApiCacheDisabled = true;
+          }
+        }
       }
     } catch (_) {}
   }
