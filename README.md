@@ -147,11 +147,13 @@ Architecture double couche :
 
 Seules les données utilisateur sont synchronisées. Le cache API reste local.
 
-| Table Supabase | Colonnes |
+| Table Supabase | Rôle |
 |---|---|
-| `pokecollect_data` | `user_id`, `key`, `value`, `updated_at` |
+| `pokecollect_data` | Données par utilisateur (collection, favoris, listes) — RLS user-scoped |
+| `pokecollect_shared` | Cache partagé global (actualités TCG, conventions FR) — lecture publique |
 
-RLS activé — chaque utilisateur n'accède qu'à ses propres données (`auth.uid()::text = user_id`).
+`pokecollect_data` : RLS activé — chaque utilisateur n'accède qu'à ses propres données.  
+`pokecollect_shared` : lecture publique (anon), écriture réservée aux utilisateurs authentifiés.
 
 ---
 
@@ -181,6 +183,31 @@ create policy "own data only"
 ```
 
 Dans **Authentication → Settings** : désactiver "Confirm email" pour une inscription immédiate.
+
+**Table partagée** (actualités + conventions — accessible à tous) :
+
+```sql
+create table if not exists pokecollect_shared (
+  key        text primary key,
+  value      text,
+  updated_at bigint default 0
+);
+
+alter table pokecollect_shared enable row level security;
+
+-- Lecture publique (non authentifié)
+create policy "shared_read"
+  on pokecollect_shared for select
+  using (true);
+
+-- Écriture réservée aux utilisateurs connectés
+create policy "shared_write"
+  on pokecollect_shared for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+```
+
+> Les conventions France peuvent être mises à jour directement dans la table `pokecollect_shared` via le dashboard Supabase (clé `fr_conventions`, valeur JSON du tableau d'événements).
 
 ### Variables d'environnement
 

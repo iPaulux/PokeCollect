@@ -10,6 +10,8 @@ import { fonts } from '../utils/theme';
 import { getCached, setCached } from '../utils/cache';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
+import ArticlesModal from '../components/ArticlesModal';
+import ConventionsModal from '../components/ConventionsModal';
 
 // ─── Modale "Ma collection" ───────────────────────────────────────────────────
 function CollectionModal({ visible, owned, onClose }) {
@@ -185,8 +187,10 @@ export default function SetsScreen() {
   const [favoriteSets, setFavoriteSets] = useState({});
   const [owned, setOwned] = useState({});
   const [viewMode, setViewMode] = useState('list');
-  const [collectionVisible, setCollectionVisible] = useState(false);
-  const [statsVisible, setStatsVisible] = useState(false);
+  const [collectionVisible, setCollectionVisible]   = useState(false);
+  const [statsVisible, setStatsVisible]             = useState(false);
+  const [articlesVisible, setArticlesVisible]       = useState(false);
+  const [conventionsVisible, setConventionsVisible] = useState(false);
 
   useFocusEffect(useCallback(() => {
     getFavoriteSets().then(setFavoriteSets);
@@ -330,6 +334,17 @@ export default function SetsScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.quickRow}>
+        <TouchableOpacity style={styles.quickCard} onPress={() => setArticlesVisible(true)}>
+          <Text style={styles.quickIcon}>📰</Text>
+          <Text style={styles.quickLabel} numberOfLines={1}>Actualités TCG</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickCard} onPress={() => setConventionsVisible(true)}>
+          <Text style={styles.quickIcon}>📅</Text>
+          <Text style={styles.quickLabel} numberOfLines={1}>Conventions FR</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.searchRow}>
         <TextInput
           style={styles.search}
@@ -356,8 +371,10 @@ export default function SetsScreen() {
         renderItem={viewMode === 'list' ? renderListItem : renderGridItem}
       />
 
-      <CollectionModal visible={collectionVisible} owned={owned} onClose={() => setCollectionVisible(false)} />
-      <StatsModal      visible={statsVisible}      owned={owned} onClose={() => setStatsVisible(false)} />
+      <CollectionModal  visible={collectionVisible}   owned={owned} onClose={() => setCollectionVisible(false)} />
+      <StatsModal       visible={statsVisible}        owned={owned} onClose={() => setStatsVisible(false)} />
+      <ArticlesModal    visible={articlesVisible}               onClose={() => setArticlesVisible(false)} />
+      <ConventionsModal visible={conventionsVisible}            onClose={() => setConventionsVisible(false)} />
     </View>
   );
 }
@@ -365,15 +382,15 @@ export default function SetsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#1a1a2e' },
   // Blocs rapides home
-  quickRow: { flexDirection: 'row', marginLeft: 12, marginRight: 12, marginTop: 12, marginBottom: 4, gap: 10 },
+  quickRow: { flexDirection: 'row', marginLeft: 12, marginRight: 12, marginTop: 10, marginBottom: 0, gap: 10 },
   quickCard: {
     flex: 1, backgroundColor: '#16213e', borderRadius: 14,
-    padding: '14px 12px', alignItems: 'center',
-    border: '1px solid #2a2a4a',
+    padding: '12px 10px', alignItems: 'center', justifyContent: 'center',
+    border: '1px solid #2a2a4a', minHeight: 72,
   },
   quickIcon:  { fontSize: 22, marginBottom: 4 },
   quickValue: { color: '#E63F00', fontSize: 22, fontFamily: fonts.extrabold, lineHeight: '26px' },
-  quickLabel: { color: '#888', fontSize: 11, fontFamily: fonts.semibold, marginTop: 2 },
+  quickLabel: { color: '#888', fontSize: 11, fontFamily: fonts.semibold, marginTop: 2, textAlign: 'center' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' },
   loadingText: { color: '#ccc', marginTop: 12, fontSize: 14, fontFamily: fonts.regular },
   emptyText: { color: '#888', fontSize: 14 },

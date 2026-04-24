@@ -11,6 +11,7 @@ import SearchScreen from './screens/SearchScreen';
 import ListsScreen from './screens/ListsScreen';
 import ListDetailScreen from './screens/ListDetailScreen';
 import PokedexListScreen from './screens/PokedexListScreen';
+import GradedListScreen from './screens/GradedListScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import ScanScreen from './screens/ScanScreen';
@@ -230,8 +231,17 @@ function ListsPage() {
 function PokedexListPage() {
   return (
     <div style={pageStyle}>
-      <Header title="Ma collection" />
+      <Header title="Ma collection" showBack />
       <PokedexListScreen />
+    </div>
+  );
+}
+
+function GradedListPage() {
+  return (
+    <div style={pageStyle}>
+      <Header title="Mes cartes gradées" showBack />
+      <GradedListScreen />
     </div>
   );
 }
@@ -465,6 +475,7 @@ function AppLayout({ session }) {
               <Route path="/scan"          element={<ScanPage />} />
               <Route path="/lists"                element={<ListsPage />} />
               <Route path="/lists/__pokedex__"   element={<PokedexListPage />} />
+              <Route path="/lists/__graded__"    element={<GradedListPage />} />
               <Route path="/lists/:listId"        element={<ListDetailPage />} />
               <Route path="/products"      element={<ProductsPage />} />
               <Route path="/favorites"     element={<FavoritesPage />} />

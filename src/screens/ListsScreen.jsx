@@ -10,6 +10,34 @@ import { getOwnedCards } from '../utils/storage';
 import PokeBallPicker, { PokeBallSVG, POKEBALLS } from '../components/PokeBallPicker';
 import { ChevronRight, Trash2 } from 'lucide-react';
 
+// ─── Icône Baie Pokémon ───────────────────────────────────────────────────────
+function BerryIcon({ size = 40 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Feuille */}
+      <ellipse cx="20" cy="9" rx="5" ry="7" fill="#3aaf5c" transform="rotate(-15 20 9)" />
+      <ellipse cx="20" cy="9" rx="5" ry="7" fill="#2d9e4f" transform="rotate(15 20 9)" />
+      {/* Nervure feuille */}
+      <line x1="20" y1="5" x2="20" y2="14" stroke="#1d7a38" strokeWidth="1" strokeLinecap="round" />
+      {/* Tige */}
+      <line x1="20" y1="14" x2="20" y2="17" stroke="#5a3010" strokeWidth="2" strokeLinecap="round" />
+      {/* Corps de la baie (Baie Oran – bleu-violet) */}
+      <circle cx="20" cy="28" r="11" fill="#5b8ef0" />
+      <circle cx="20" cy="28" r="11" fill="url(#berryGrad)" />
+      {/* Reflet */}
+      <ellipse cx="16" cy="23" rx="3.5" ry="2.5" fill="rgba(255,255,255,0.35)" transform="rotate(-20 16 23)" />
+      {/* Ligne centrale */}
+      <path d="M14 19 Q20 22 26 19" stroke="#3a6bd4" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <defs>
+        <radialGradient id="berryGrad" cx="38%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#82aaff" />
+          <stop offset="100%" stopColor="#3a5fbf" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}
+
 // ─── Icône Pokédex ────────────────────────────────────────────────────────────
 function PokedexIcon({ size = 40 }) {
   const s = size;
@@ -72,7 +100,10 @@ export default function ListsScreen() {
   };
 
   const sorted = Object.values(lists).sort((a, b) => b.createdAt - a.createdAt);
-  const totalOwned = Object.keys(owned).length;
+  const totalOwned  = Object.keys(owned).length;
+  const totalGraded = Object.values(owned).filter(
+    (v) => v && typeof v === 'object' && v.graded === true
+  ).length;
 
   return (
     <View style={styles.container}>
@@ -98,6 +129,29 @@ export default function ListsScreen() {
           <Text style={styles.listMeta}>
             {totalOwned} carte{totalOwned !== 1 ? 's' : ''} possédée{totalOwned !== 1 ? 's' : ''}
             <Text style={styles.listOwned}> · triées par sortie</Text>
+          </Text>
+        </View>
+        <ChevronRight size={20} color="#444" strokeWidth={1.8} />
+      </TouchableOpacity>
+
+      {/* ── Liste cartes gradées épinglée ── */}
+      <TouchableOpacity
+        style={styles.pokedexCard}
+        onPress={() => navigate('/lists/__graded__')}
+      >
+        <div style={{ marginRight: 12, flexShrink: 0 }}>
+          <BerryIcon size={40} />
+        </div>
+        <View style={styles.listInfo}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.pokedexName}>Mes cartes gradées</Text>
+            <View style={styles.pinnedBadge}>
+              <Text style={styles.pinnedBadgeText}>Épinglée</Text>
+            </View>
+          </View>
+          <Text style={styles.listMeta}>
+            {totalGraded} carte{totalGraded !== 1 ? 's' : ''} gradée{totalGraded !== 1 ? 's' : ''}
+            <Text style={styles.listOwned}> · par société</Text>
           </Text>
         </View>
         <ChevronRight size={20} color="#444" strokeWidth={1.8} />

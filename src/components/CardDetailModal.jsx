@@ -8,7 +8,18 @@ import { getCached, setCached } from '../utils/cache';
 import { fonts } from '../utils/theme';
 import AddToListModal from './AddToListModal';
 
-const GRADING_COMPANIES = ['PSA', 'BGS', 'CGC', 'TAG', 'ACE'];
+// { tag: affiché sur le bouton (≤3 car.), name: valeur stockée }
+const GRADING_COMPANIES = [
+  { tag: 'PSA', name: 'PSA' },
+  { tag: 'PCA', name: 'PCA' },
+  { tag: 'CA',  name: 'CA'  },
+  { tag: 'COL', name: 'CollectAura' },
+  { tag: 'CCC', name: 'CCC' },
+  { tag: 'CGC', name: 'CGC' },
+  { tag: 'BEC', name: 'Beckett' },
+  { tag: 'AUT', name: 'Autres' },  // → saisie libre
+];
+const KNOWN_NAMES = new Set(GRADING_COMPANIES.filter((c) => c.tag !== 'AUT').map((c) => c.name));
 
 const RARITY_SHORT = {
   'Common': { label: 'C', color: '#888' },
@@ -60,17 +71,29 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
   const [loading, setLoading] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
   const [showGrading, setShowGrading] = useState(false);
-  const [gradingCompany, setGradingCompany] = useState('PSA');
-  const [gradingGrade, setGradingGrade] = useState('');
+  const [gradingCompany, setGradingCompany] = useState('PSA');   // tag sélectionné
+  const [gradingCustom, setGradingCustom]   = useState('');       // saisie libre (Autres)
+  const [gradingGrade, setGradingGrade]     = useState('');
 
   useEffect(() => {
     if (!visible) return;
     setShowGrading(false);
     if (gradingData?.graded) {
-      setGradingCompany(gradingData.company || 'PSA');
+      const stored = gradingData.company || 'PSA';
+      if (KNOWN_NAMES.has(stored)) {
+        // retrouver le tag correspondant au name stocké
+        const match = GRADING_COMPANIES.find((c) => c.name === stored);
+        setGradingCompany(match ? match.tag : 'AUT');
+        setGradingCustom(match ? '' : stored);
+      } else {
+        // ancienne valeur inconnue (BGS, TAG, ACE…) → Autres
+        setGradingCompany('AUT');
+        setGradingCustom(stored);
+      }
       setGradingGrade(gradingData.grade || '');
     } else {
       setGradingCompany('PSA');
+      setGradingCustom('');
       setGradingGrade('');
     }
   }, [visible, gradingData]);
@@ -244,13 +267,40 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
                 </TouchableOpacity>
                 {showGrading && (
                   <View style={styles.gradingBody}>
+                    {/* Ligne 1 : PSA · PCA · CA · COL */}
                     <View style={styles.companyRow}>
-                      {GRADING_COMPANIES.map((co) => (
-                        <TouchableOpacity key={co} style={[styles.companyBtn, gradingCompany === co && styles.companyBtnActive]} onPress={() => setGradingCompany(co)}>
-                          <Text style={[styles.companyText, gradingCompany === co && styles.companyTextActive]}>{co}</Text>
+                      {GRADING_COMPANIES.slice(0, 4).map((co) => (
+                        <TouchableOpacity
+                          key={co.tag}
+                          style={[styles.companyBtn, gradingCompany === co.tag && styles.companyBtnActive]}
+                          onPress={() => setGradingCompany(co.tag)}
+                        >
+                          <Text style={[styles.companyText, gradingCompany === co.tag && styles.companyTextActive]}>{co.tag}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
+                    {/* Ligne 2 : CCC · CGC · BEC · AUT */}
+                    <View style={styles.companyRow}>
+                      {GRADING_COMPANIES.slice(4).map((co) => (
+                        <TouchableOpacity
+                          key={co.tag}
+                          style={[styles.companyBtn, gradingCompany === co.tag && styles.companyBtnActive]}
+                          onPress={() => setGradingCompany(co.tag)}
+                        >
+                          <Text style={[styles.companyText, gradingCompany === co.tag && styles.companyTextActive]}>{co.tag}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    {/* Champ libre pour "Autres" */}
+                    {gradingCompany === 'AUT' && (
+                      <TextInput
+                        style={styles.gradeInput}
+                        placeholder="Nom de la société…"
+                        placeholderTextColor="#555"
+                        value={gradingCustom}
+                        onChangeText={setGradingCustom}
+                      />
+                    )}
                     <TextInput
                       style={styles.gradeInput}
                       placeholder="Note (ex: 10, 9.5, 8...)"
@@ -269,7 +319,11 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
                         style={[styles.saveGradeBtn, { flex: gradingData?.graded ? 1 : undefined, width: gradingData?.graded ? undefined : '100%' }]}
                         onPress={() => {
                           if (!gradingGrade.trim()) return;
-                          onSetGrading?.({ graded: true, company: gradingCompany, grade: gradingGrade.trim() });
+                          const co = GRADING_COMPANIES.find((c) => c.tag === gradingCompany);
+                          const companyToStore = gradingCompany === 'AUT'
+                            ? (gradingCustom.trim() || 'Autres')
+                            : (co?.name ?? gradingCompany);
+                          onSetGrading?.({ graded: true, company: companyToStore, grade: gradingGrade.trim() });
                           setShowGrading(false);
                         }}
                       >
