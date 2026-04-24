@@ -12,6 +12,11 @@ function prefixed(key) {
 }
 
 export async function getCached(key) {
+  return getCachedWithTTL(key, TTL);
+}
+
+/** Comme getCached mais avec un TTL personnalisé (ms). */
+export async function getCachedWithTTL(key, ttl) {
   try {
     const db = await getDb();
     const result = db.exec(
@@ -20,8 +25,24 @@ export async function getCached(key) {
     );
     if (!result.length || !result[0].values.length) return null;
     const [data, ts] = result[0].values[0];
-    if (Date.now() - ts > TTL) return null;
+    if (Date.now() - ts > ttl) return null;
     return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+/** Retourne la donnée brute + timestamp, sans filtre TTL. */
+export async function getCachedRaw(key) {
+  try {
+    const db = await getDb();
+    const result = db.exec(
+      'SELECT data, timestamp FROM api_cache WHERE cache_key = ?',
+      [prefixed(key)]
+    );
+    if (!result.length || !result[0].values.length) return null;
+    const [data, ts] = result[0].values[0];
+    return { data: JSON.parse(data), ts };
   } catch {
     return null;
   }

@@ -6,7 +6,7 @@ import {
 } from '../components/rn-web';
 import { getOwnedCards, toggleCard, getFavoriteCards, toggleFavoriteCard, setCardGrading, getGradingInfo } from '../utils/storage';
 import { fonts } from '../utils/theme';
-import { getCached, setCached } from '../utils/cache';
+import { getApiCache, setApiCache, CARDS_TTL } from '../utils/sharedCache';
 import CardDetailModal from '../components/CardDetailModal';
 
 function sortCards(cards) {
@@ -44,12 +44,13 @@ export default function CardsScreen() {
     if (!set?.id) return;
     const cacheKey = `cards:${set.id}`;
     (async () => {
-      const cached = await getCached(cacheKey);
+      // 3-tiers : local SQLite → Supabase → API
+      const cached = await getApiCache(cacheKey, CARDS_TTL);
       if (cached) { setCards(sortCards(cached)); setLoading(false); return; }
       const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${set.id}&pageSize=500`);
       const data = await res.json();
       const result = sortCards(data.data || []);
-      await setCached(cacheKey, result);
+      await setApiCache(cacheKey, result); // écrit en local + Supabase
       setCards(result);
       setLoading(false);
     })();

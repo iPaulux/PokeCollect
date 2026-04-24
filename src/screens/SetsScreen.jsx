@@ -7,7 +7,7 @@ import {
 } from '../components/rn-web';
 import { useLang, LANGUAGES } from '../utils/LanguageContext.jsx';
 import { fonts } from '../utils/theme';
-import { getCached, setCached } from '../utils/cache';
+import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
 import ArticlesModal from '../components/ArticlesModal';
@@ -214,13 +214,14 @@ export default function SetsScreen() {
     const cacheKey = `sets:${lang}`;
     (async () => {
       try {
-        const cached = await getCached(cacheKey);
+        // 3-tiers : local SQLite → Supabase → API
+        const cached = await getApiCache(cacheKey, SETS_TTL);
         if (cached) { setSets(cached); setFiltered(cached); setLoading(false); return; }
         const res = await fetch(`https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate&pageSize=250`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const result = data.data || [];
-        await setCached(cacheKey, result);
+        await setApiCache(cacheKey, result); // écrit en local + Supabase
         setSets(result);
         setFiltered(result);
       } catch (e) {

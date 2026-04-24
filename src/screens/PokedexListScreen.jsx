@@ -8,6 +8,7 @@ import {
   getOwnedCards, getGradingInfo, getFavoriteCards,
   toggleFavoriteCard, toggleCard, setCardGrading,
 } from '../utils/storage';
+import { getApiCache, setApiCache, SETS_TTL, CARDS_TTL } from '../utils/sharedCache';
 import CardDetailModal from '../components/CardDetailModal';
 
 const API = 'https://api.pokemontcg.io/v2';
@@ -48,11 +49,16 @@ export default function PokedexListScreen() {
       bySet[sid].push(id);
     }
 
-    // Récupérer les dates de sortie des sets pour le tri
+    // Récupérer les dates de sortie des sets pour le tri (cache 7j)
     let setDates = {};
     try {
-      const setsRes = await fetch(`${API}/sets?select=id,releaseDate&pageSize=500`).then((r) => r.json());
-      (setsRes.data || []).forEach((s) => { setDates[s.id] = s.releaseDate; });
+      let setsData = await getApiCache('sets:en', SETS_TTL);
+      if (!setsData) {
+        const setsRes = await fetch(`${API}/sets?orderBy=-releaseDate&pageSize=250`).then((r) => r.json());
+        setsData = setsRes.data || [];
+        await setApiCache('sets:en', setsData);
+      }
+      setsData.forEach((s) => { setDates[s.id] = s.releaseDate; });
     } catch (_) { /* fallback : tri lexicographique */ }
 
     // Trier les sets par releaseDate croissante
@@ -62,15 +68,20 @@ export default function PokedexListScreen() {
       return da.localeCompare(db);
     });
 
-    // Récupérer les cartes pour chaque set et filtrer aux possédées
+    // Récupérer les cartes pour chaque set et filtrer aux possédées (cache 30j)
     const allCards = [];
     for (const sid of sortedSetIds) {
       const ownedSet = new Set(bySet[sid]);
       try {
-        const res = await fetch(
-          `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
-        ).then((r) => r.json());
-        const filtered = (res.data || []).filter((c) => ownedSet.has(c.id));
+        let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
+        if (!allSetCards) {
+          const res = await fetch(
+            `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
+          ).then((r) => r.json());
+          allSetCards = res.data || [];
+          await setApiCache(`cards:${sid}`, allSetCards);
+        }
+        const filtered = allSetCards.filter((c) => ownedSet.has(c.id));
         allCards.push(...filtered);
       } catch (_) { /* skip set si erreur */ }
     }

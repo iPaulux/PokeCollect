@@ -9,6 +9,7 @@ import {
   getFavoriteCards, toggleFavoriteCard,
   toggleCard, setCardGrading,
 } from '../utils/storage';
+import { getApiCache, setApiCache, CARDS_TTL } from '../utils/sharedCache';
 import CardDetailModal from '../components/CardDetailModal';
 
 const API = 'https://api.pokemontcg.io/v2';
@@ -99,15 +100,20 @@ export default function GradedListScreen() {
       bySet[sid].push(cardId);
     }
 
-    // Fetch les cartes par set
+    // Fetch les cartes par set (cache 30j : local SQLite → Supabase → API)
     const cardMap = {}; // cardId → cardData
     for (const [sid, ids] of Object.entries(bySet)) {
       const ownedSet = new Set(ids);
       try {
-        const res = await fetch(
-          `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
-        ).then((r) => r.json());
-        (res.data || []).filter((c) => ownedSet.has(c.id)).forEach((c) => { cardMap[c.id] = c; });
+        let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
+        if (!allSetCards) {
+          const res = await fetch(
+            `${API}/cards?q=set.id:${sid}&pageSize=500&orderBy=number`
+          ).then((r) => r.json());
+          allSetCards = res.data || [];
+          await setApiCache(`cards:${sid}`, allSetCards);
+        }
+        allSetCards.filter((c) => ownedSet.has(c.id)).forEach((c) => { cardMap[c.id] = c; });
       } catch (_) { /* skip */ }
     }
 
