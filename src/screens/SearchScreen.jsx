@@ -9,6 +9,8 @@ import CardDetailModal from '../components/CardDetailModal';
 import { getFrToEnMap, resolveSearchTerm } from '../utils/pokemonNames';
 import { pokemonApiUrl } from '../utils/api';
 
+const PAGE_SIZE = 60;
+
 const RARITIES = [
   { label: 'Toutes', value: null },
   { label: 'Commune', value: 'Common' },
@@ -25,15 +27,22 @@ const RARITIES = [
 export default function SearchScreen() {
   const { width } = useWindowDimensions();
   const CARD_WIDTH = Math.floor((Math.min(width, 600) - 16 - 24) / 3);
-  const [query, setQuery] = useState('');
-  const [rarity, setRarity] = useState(null);
-  const [cards, setCards] = useState([]);
-  const [owned, setOwned] = useState({});
+
+  const [query, setQuery]               = useState('');
+  const [rarity, setRarity]             = useState(null);
+  const [cards, setCards]               = useState([]);
+  const [owned, setOwned]               = useState({});
   const [favoriteCards, setFavoriteCards] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [loadingMore, setLoadingMore]   = useState(false);
+  const [searched, setSearched]         = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [translatedTerm, setTranslatedTerm] = useState(null);
+  const [totalCount, setTotalCount]     = useState(0);
+  const [page, setPage]                 = useState(1);
+  // Mémorise la query résolue et la rareté courantes pour la pagination
+  const activeQ = useRef('');
+  const activeR = useRef(null);
   const debounceRef = useRef(null);
 
   useFocusEffect(useCallback(() => {
@@ -42,27 +51,74 @@ export default function SearchScreen() {
     getFrToEnMap();
   }, []));
 
+  // ─── Recherche initiale ────────────────────────────────────────────────────
   const doSearch = useCallback(async (q, r) => {
-    if (!q.trim() && !r) { setCards([]); setSearched(false); setTranslatedTerm(null); return; }
+    if (!q.trim() && !r) {
+      setCards([]); setSearched(false); setTranslatedTerm(null);
+      setTotalCount(0); setPage(1);
+      return;
+    }
     setLoading(true);
     setSearched(true);
+    setPage(1);
+
     let resolvedQ = q.trim();
     if (q.trim()) {
       const resolved = await resolveSearchTerm(q.trim());
-      if (resolved.toLowerCase() !== q.trim().toLowerCase()) { setTranslatedTerm(resolved); resolvedQ = resolved; }
-      else setTranslatedTerm(null);
+      if (resolved.toLowerCase() !== q.trim().toLowerCase()) {
+        setTranslatedTerm(resolved); resolvedQ = resolved;
+      } else {
+        setTranslatedTerm(null);
+      }
     }
+
+    activeQ.current = resolvedQ;
+    activeR.current = r;
+
     const parts = [];
     if (resolvedQ) parts.push(`name:"*${resolvedQ}*"`);
     if (r) parts.push(`rarity:"${r}"`);
-    const url = pokemonApiUrl('/cards', { q: parts.join(' '), orderBy: 'name', pageSize: 60, select: 'id,name,number,rarity,set.name,images' });
+
+    const url = pokemonApiUrl('/cards', {
+      q: parts.join(' '), orderBy: 'name',
+      pageSize: PAGE_SIZE, page: 1,
+      select: 'id,name,number,rarity,set.name,images',
+    });
     try {
-      const res = await fetch(url);
+      const res  = await fetch(url);
       const data = await res.json();
       setCards(data.data || []);
-    } catch { setCards([]); }
-    finally { setLoading(false); }
+      setTotalCount(data.totalCount || 0);
+    } catch {
+      setCards([]); setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // ─── Charger la page suivante ─────────────────────────────────────────────
+  const loadMore = useCallback(async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+
+    const parts = [];
+    if (activeQ.current) parts.push(`name:"*${activeQ.current}*"`);
+    if (activeR.current) parts.push(`rarity:"${activeR.current}"`);
+
+    const url = pokemonApiUrl('/cards', {
+      q: parts.join(' '), orderBy: 'name',
+      pageSize: PAGE_SIZE, page: nextPage,
+      select: 'id,name,number,rarity,set.name,images',
+    });
+    try {
+      const res  = await fetch(url);
+      const data = await res.json();
+      setCards((prev) => [...prev, ...(data.data || [])]);
+      setPage(nextPage);
+    } catch { /* on garde ce qu'on a */ }
+    finally { setLoadingMore(false); }
+  }, [loadingMore, page]);
 
   const handleQueryChange = (text) => {
     setQuery(text);
@@ -90,6 +146,8 @@ export default function SearchScreen() {
     const updated = await setCardGrading(cardId, gradingData);
     setOwned({ ...updated });
   };
+
+  const hasMore = cards.length < totalCount;
 
   return (
     <View style={styles.container}>
@@ -119,34 +177,65 @@ export default function SearchScreen() {
       ) : cards.length === 0 ? (
         <View style={styles.center}><Text style={styles.hint}>Aucun résultat</Text></View>
       ) : (
-        <>
-          {translatedTerm && (
-            <Text style={styles.translatedNote}>
-              🔄 Recherche traduite : <Text style={styles.translatedWord}>{translatedTerm}</Text>
-            </Text>
+        <FlatList
+          data={cards}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          contentContainerStyle={styles.grid}
+          ListHeaderComponent={() => (
+            <div style={{ paddingLeft: 12, paddingRight: 12 }}>
+              {translatedTerm && (
+                <p style={{ color: '#888', fontSize: 11, margin: '4px 0 2px', fontFamily: 'Poppins, sans-serif' }}>
+                  🔄 Recherche traduite : <span style={{ color: '#E63F00', fontWeight: 700 }}>{translatedTerm}</span>
+                </p>
+              )}
+              <p style={{ color: '#666', fontSize: 12, margin: '0 0 6px', fontFamily: 'Poppins, sans-serif' }}>
+                {cards.length}{totalCount > cards.length ? ` / ${totalCount}` : ''} carte{cards.length > 1 ? 's' : ''} trouvée{cards.length > 1 ? 's' : ''}
+              </p>
+            </div>
           )}
-          <Text style={styles.resultCount}>{cards.length} carte(s) trouvée(s)</Text>
-          <FlatList
-            data={cards}
-            keyExtractor={(item) => item.id}
-            numColumns={3}
-            contentContainerStyle={styles.grid}
-            renderItem={({ item }) => {
-              const isOwned = !!owned[item.id];
-              return (
-                <TouchableOpacity
-                  style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
-                  onPress={() => setSelectedCard(item)}
-                >
-                  <Image source={{ uri: item.images?.small }} style={[styles.cardImage, !isOwned && styles.cardImageGray]} resizeMode="contain" />
-                  <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.cardSet} numberOfLines={1}>{item.set?.name}</Text>
-                  {isOwned && <View style={styles.badge}><Text style={styles.badgeText}>✓</Text></View>}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </>
+          ListFooterComponent={() =>
+            hasMore ? (
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                style={{
+                  margin: '8px 16px 24px',
+                  padding: '14px 0',
+                  borderRadius: 12,
+                  backgroundColor: 'transparent',
+                  border: '1px solid #E63F00',
+                  width: 'calc(100% - 32px)',
+                  cursor: loadingMore ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 48, gap: 8,
+                }}
+              >
+                {loadingMore ? (
+                  <div style={{ width: 18, height: 18, border: '2px solid #E63F00', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  <span style={{ color: '#E63F00', fontSize: 13, fontFamily: 'Poppins, sans-serif', fontWeight: 700 }}>
+                    Voir plus · {totalCount - cards.length} restantes
+                  </span>
+                )}
+              </button>
+            ) : null
+          }
+          renderItem={({ item }) => {
+            const isOwned = !!owned[item.id];
+            return (
+              <TouchableOpacity
+                style={[styles.cardCell, isOwned && styles.cardOwned, { width: CARD_WIDTH }]}
+                onPress={() => setSelectedCard(item)}
+              >
+                <Image source={{ uri: item.images?.small }} style={[styles.cardImage, !isOwned && styles.cardImageGray]} resizeMode="contain" />
+                <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+                <Text style={styles.cardSet} numberOfLines={1}>{item.set?.name}</Text>
+                {isOwned && <View style={styles.badge}><Text style={styles.badgeText}>✓</Text></View>}
+              </TouchableOpacity>
+            );
+          }}
+        />
       )}
 
       <CardDetailModal
@@ -182,9 +271,6 @@ const styles = StyleSheet.create({
   rarityTextActive: { color: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   hint: { color: '#555', fontSize: 14 },
-  translatedNote: { color: '#888', fontSize: 11, paddingLeft: 12, paddingRight: 12, paddingTop: 4, paddingBottom: 2 },
-  translatedWord: { color: '#E63F00', fontFamily: fonts.bold },
-  resultCount: { color: '#666', fontSize: 12, paddingLeft: 12, paddingRight: 12, paddingBottom: 6 },
   grid: { paddingLeft: 8, paddingRight: 8, paddingTop: 4, paddingBottom: 20 },
   cardCell: { margin: 4, borderRadius: 10, overflow: 'hidden', backgroundColor: '#16213e', alignItems: 'center', paddingBottom: 6, border: '1px solid #2a2a4a', position: 'relative' },
   cardOwned: { border: '2px solid #E63F00' },

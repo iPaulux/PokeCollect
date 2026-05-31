@@ -247,12 +247,19 @@ export function FlatList({
   numColumns = 1,
   contentContainerStyle,
   ListHeaderComponent,
+  ListFooterComponent,
   ListEmptyComponent,
   style,
   // key prop géré par React nativement — pas besoin de forward
   ...rest
 }) {
   const items = data || [];
+
+  // ListHeaderComponent / ListFooterComponent peuvent être des éléments ou des fonctions
+  const Header = typeof ListHeaderComponent === 'function'
+    ? <ListHeaderComponent /> : ListHeaderComponent;
+  const Footer = typeof ListFooterComponent === 'function'
+    ? <ListFooterComponent /> : ListFooterComponent;
 
   return (
     <div
@@ -268,7 +275,7 @@ export function FlatList({
         ...flatStyle(style),
       }}
     >
-      {ListHeaderComponent}
+      {Header}
       {items.length === 0 && ListEmptyComponent ? (
         ListEmptyComponent
       ) : (
@@ -294,6 +301,7 @@ export function FlatList({
           ))}
         </div>
       )}
+      {Footer}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 
 const SET_FR_TO_EN = {
   // Mega Evolution (2025-2026)
+  'chaos ascendant': 'chaos rising',
   'ordre parfait': 'perfect order',
   'héros ascendants': 'ascended heroes',
   'flammes fantasmagoriques': 'phantasmal flames',
@@ -47,6 +48,7 @@ const SET_FR_TO_EN = {
 
   // Sun & Moon (2017-2019)
   'éclipse cosmique': 'cosmic eclipse',
+  'destinées cachées': 'hidden fates',
   'destins cachés': 'hidden fates',
   'connexion des esprits': 'unified minds',
   'liens indéfectibles': 'unbroken bonds',
@@ -64,6 +66,10 @@ const SET_FR_TO_EN = {
 
   // XY (2013-2016)
   'évolutions': 'evolutions',
+  'offensive vapeur': 'steam siege',
+  'feux croisés': 'fates collide',
+  'point de break': 'breakpoint',
+  'break évolution': 'breakthrough',
   'origines antiques': 'ancient origins',
   'ciel rugissant': 'roaring skies',
   'double crise': 'double crisis',
@@ -72,6 +78,80 @@ const SET_FR_TO_EN = {
   'poings furieux': 'furious fists',
   'torches enflammées': 'flashfire',
   'xy': 'xy',
+
+  // Black & White (2011-2013)
+  'trésors légendaires': 'legendary treasures',
+  'détonation plasma': 'plasma blast',
+  'gel plasma': 'plasma freeze',
+  'tempête plasma': 'plasma storm',
+  'frontières franchies': 'boundaries crossed',
+  'dragons exaltés': 'dragons exalted',
+  'explorateurs des ténèbres': 'dark explorers',
+  'destinées futures': 'next destinies',
+  'nobles victoires': 'noble victories',
+  'pouvoirs émergents': 'emerging powers',
+  'noir et blanc': 'black & white',
+  'noir & blanc': 'black & white',
+
+  // HeartGold & SoulSilver (2010-2011)
+  'appel des légendes': 'call of legends',
+  'hs triomphant': 'hs—triumphant',
+  'hs indomptable': 'hs—undaunted',
+  'hs déchaîné': 'hs—unleashed',
+  'or heartgold soulsilver': 'heartgold & soulsilver',
+  'heartgold soulsilver': 'heartgold & soulsilver',
+
+  // Platinum (2009)
+  'arceus': 'arceus',
+  'suprême vainqueur': 'supreme victors',
+  'rivaux majestueux': 'rising rivals',
+  'platine': 'platinum',
+
+  // Diamond & Pearl (2007-2008)
+  'tonnerre tempétueux': 'stormfront',
+  'éveil des légendes': 'legends awakened',
+  'aube majestueuse': 'majestic dawn',
+  'grande rencontre': 'great encounters',
+  'trésors mystérieux': 'mysterious treasures',
+  'diamant et perle': 'diamond & pearl',
+
+  // EX (2003-2007)
+  'gardiens du pouvoir': 'power keepers',
+  'frontières des dragons': 'dragon frontiers',
+  'cristal gardien': 'crystal guardians',
+  'fantômes holon': 'holon phantoms',
+  'création de légendes': 'legend maker',
+  'espèces delta': 'delta species',
+  'forces invisibles': 'unseen forces',
+  'émeraude': 'emerald',
+  'deoxys': 'deoxys',
+  'retour de la team rocket': 'team rocket returns',
+  'feu rouge feuille verte': 'firered & leafgreen',
+  'légendes cachées': 'hidden legends',
+  'équipe magma vs équipe aqua': 'team magma vs team aqua',
+  'dragon': 'dragon',
+  'tempête de sable': 'sandstorm',
+  'rubis et saphir': 'ruby & sapphire',
+
+  // Promos Black Star
+  'promos black star écarlate et violet': 'scarlet & violet black star promos',
+  'promos ecarlate et violet': 'scarlet & violet black star promos',
+  'promos épée et bouclier': 'swsh black star promos',
+  'promos soleil et lune': 'sm black star promos',
+  'promos xy': 'xy black star promos',
+  'promos noir et blanc': 'bw black star promos',
+  'promos noir & blanc': 'bw black star promos',
+  'promos heartgold soulsilver': 'hgss black star promos',
+  'promos dp': 'dp black star promos',
+  'promos nintendo': 'nintendo black star promos',
+  'promos wizards': 'wizards black star promos',
+
+  // Générations / séries spéciales
+  'générations': 'generations',
+  'celebrations': 'celebrations',
+  'célébrations': 'celebrations',
+  'collection ile du sud': 'southern islands',
+  'iles du sud': 'southern islands',
 };
 
 // Dictionnaire mot-à-mot pour les recherches partielles
@@ -118,6 +198,37 @@ const WORD_FR_TO_EN = {
   'fable': 'fable',
   'voilée': 'shrouded', 'voilee': 'shrouded',
   'origine': 'origin', 'origines': 'origins',
+  // Nouveaux mots
+  'chaos': 'chaos',
+  'break': 'break',
+  'offensive': 'siege',
+  'vapeur': 'steam',
+  'feux': 'fates',
+  'croisés': 'collide', 'croises': 'collide',
+  'trésors': 'treasures', 'tresors': 'treasures',
+  'légendes': 'legends', 'legendes': 'legends',
+  'légendaires': 'legendary', 'legendaires': 'legendary',
+  'détonation': 'blast', 'detonation': 'blast',
+  'plasma': 'plasma',
+  'frontières': 'boundaries', 'frontieres': 'boundaries',
+  'franchies': 'crossed',
+  'exaltés': 'exalted', 'exaltes': 'exalted',
+  'dragons': 'dragons',
+  'explorateurs': 'explorers',
+  'futures': 'destinies',
+  'nobles': 'noble',
+  'victoires': 'victories',
+  'pouvoirs': 'powers',
+  'émergents': 'emerging', 'emergents': 'emerging',
+  'noir': 'black',
+  'blanc': 'white',
+  'platine': 'platinum',
+  'diamant': 'diamond',
+  'perle': 'pearl',
+  'générations': 'generations', 'generations': 'generations',
+  'célébrations': 'celebrations', 'celebrations': 'celebrations',
+  'promos': 'promos',
+  'promo': 'promo',
 };
 
 const normalize = (str) =>
