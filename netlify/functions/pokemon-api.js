@@ -3,6 +3,12 @@
  *
  * Évite les erreurs CORS causées par le Service Worker en production.
  * Paramètre spécial : _path (chemin de l'API, ex : "/sets", "/cards/sv3pt5-1")
+ *
+ * pokemontcg.io sans clé API renvoie des 500 aléatoires et quasi-instantanés
+ * (rate-limit implicite) sur des requêtes tout à fait valides — observé y
+ * compris sur des sets bien indexés (sv1, me1, me2...). Les réponses OK
+ * peuvent en revanche prendre jusqu'à 5-6 s (gros sets, pas de clé API).
+ * On retente donc plusieurs fois tant qu'il reste du budget temps.
  */
 
 const BASE = 'https://api.pokemontcg.io/v2';
@@ -13,25 +19,23 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-// Netlify free tier coupe à 10 s — on abort à 7 s pour laisser le temps
-// de faire un retry (1 s de délai) et renvoyer une réponse propre.
-const TIMEOUT_MS = 7000;
-const RETRY_DELAY_MS = 1000;
+// Netlify free tier coupe la fonction à 10 s. On se garde une marge de
+// sécurité pour toujours pouvoir renvoyer une réponse propre.
+const TOTAL_BUDGET_MS   = 8500;
+const MAX_ATTEMPT_MS    = 6000; // une réponse OK peut prendre jusqu'à ~6 s
+const RETRY_BASE_DELAY  = 250;  // + jitter, entre deux tentatives sur 5xx
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function callApi(url, reqHeaders) {
+async function callApi(url, reqHeaders, timeoutMs) {
   const ctrl  = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: reqHeaders });
+    return await fetch(url, { signal: ctrl.signal, headers: reqHeaders });
+  } finally {
     clearTimeout(timer);
-    return res;
-  } catch (e) {
-    clearTimeout(timer);
-    throw e;
   }
 }
 
@@ -54,42 +58,61 @@ exports.handler = async (event) => {
     reqHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
   }
 
-  try {
-    let res = await callApi(url, reqHeaders);
+  const start = Date.now();
+  let lastRes, lastText, lastErr;
 
-    // Retry une fois sur 5xx avec 1 s de délai (rate-limit transitoire)
-    if (res.status >= 500) {
-      await sleep(RETRY_DELAY_MS);
-      res = await callApi(url, reqHeaders);
+  let attempt = 0;
+  while (Date.now() - start < TOTAL_BUDGET_MS) {
+    attempt++;
+    const remaining = TOTAL_BUDGET_MS - (Date.now() - start);
+    const attemptTimeout = Math.min(MAX_ATTEMPT_MS, remaining);
+    if (attemptTimeout <= 0) break;
+
+    try {
+      const res = await callApi(url, reqHeaders, attemptTimeout);
+      const text = await res.text();
+
+      if (res.ok) {
+        return {
+          statusCode: 200,
+          headers: {
+            ...CORS,
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+          },
+          body: text,
+        };
+      }
+
+      lastRes = res;
+      lastText = text;
+
+      // 4xx = erreur définitive (mauvaise requête), inutile de retenter
+      if (res.status < 500) break;
+    } catch (e) {
+      lastErr = e;
     }
 
-    const text = await res.text();
+    // Backoff avec jitter avant la prochaine tentative, si le budget le permet
+    const remainingAfter = TOTAL_BUDGET_MS - (Date.now() - start);
+    if (remainingAfter <= 0) break;
+    await sleep(Math.min(RETRY_BASE_DELAY + Math.random() * 250, remainingAfter));
+  }
 
-    if (!res.ok) {
-      // Ne jamais mettre en cache les erreurs : le CDN Netlify respecte Cache-Control
-      // même sur 4xx/5xx, ce qui bloquerait les retries pendant 1h.
-      return {
-        statusCode: res.status,
-        headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-        body: text || JSON.stringify({ error: `Upstream HTTP ${res.status}` }),
-      };
-    }
-
+  if (lastRes) {
+    // Ne jamais mettre en cache les erreurs : le CDN Netlify respecte
+    // Cache-Control même sur 4xx/5xx, ce qui bloquerait les retries pendant 1h.
     return {
-      statusCode: 200,
-      headers: {
-        ...CORS,
-        'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-      },
-      body: text,
-    };
-  } catch (e) {
-    const isTimeout = e.name === 'AbortError';
-    return {
-      statusCode: isTimeout ? 504 : 503,
+      statusCode: lastRes.status,
       headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-      body: JSON.stringify({ error: isTimeout ? 'API timeout' : e.message }),
+      body: lastText || JSON.stringify({ error: `Upstream HTTP ${lastRes.status} après ${attempt} tentative(s)` }),
     };
   }
+
+  const isTimeout = lastErr?.name === 'AbortError';
+  return {
+    statusCode: isTimeout ? 504 : 503,
+    headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    body: JSON.stringify({ error: isTimeout ? 'API timeout' : (lastErr?.message || 'Erreur inconnue') }),
+  };
 };
