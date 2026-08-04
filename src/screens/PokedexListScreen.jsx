@@ -8,8 +8,9 @@ import {
   getOwnedCards, getGradingInfo, getFavoriteCards,
   toggleFavoriteCard, toggleCard, setCardGrading,
 } from '../utils/storage';
-import { getApiCache, setApiCache, SETS_TTL, CARDS_TTL } from '../utils/sharedCache';
+import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { pokemonApiUrl } from '../utils/api';
+import { fetchAllCardsForSet } from '../utils/cardsApi';
 import CardDetailModal from '../components/CardDetailModal';
 
 /** Extrait le setId depuis un cardId (ex: "sv3pt5-152" → "sv3pt5", "sv1-1" → "sv1") */
@@ -30,6 +31,7 @@ export default function PokedexListScreen() {
   const [loading, setLoading]         = useState(true);
   const [viewMode, setViewMode]       = useState('grid');
   const [selectedCard, setSelectedCard] = useState(null);
+  const [failedSets, setFailedSets]   = useState([]); // sets qu'on n'a pas réussi à charger
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -67,25 +69,22 @@ export default function PokedexListScreen() {
       return da.localeCompare(db);
     });
 
-    // Récupérer les cartes pour chaque set et filtrer aux possédées (cache 30j)
+    // Récupérer les cartes pour chaque set et filtrer aux possédées (cache 3-tiers + pagination robuste)
     const allCards = [];
+    const failed = [];
     for (const sid of sortedSetIds) {
       const ownedSet = new Set(bySet[sid]);
       try {
-        let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
-        if (!allSetCards) {
-          const res = await fetch(
-            pokemonApiUrl('/cards', { q: `set.id:${sid}`, pageSize: 500, orderBy: 'number' })
-          ).then((r) => r.json());
-          allSetCards = res.data || [];
-          await setApiCache(`cards:${sid}`, allSetCards);
-        }
+        const allSetCards = await fetchAllCardsForSet(sid);
         const filtered = allSetCards.filter((c) => ownedSet.has(c.id));
         allCards.push(...filtered);
-      } catch (_) { /* skip set si erreur */ }
+      } catch (_) {
+        failed.push(sid); // on garde la trace au lieu de faire disparaître silencieusement les cartes
+      }
     }
 
     setCards(allCards);
+    setFailedSets(failed);
     setLoading(false);
   }, []);
 
@@ -196,6 +195,14 @@ export default function PokedexListScreen() {
         </TouchableOpacity>
       </View>
 
+      {failedSets.length > 0 && (
+        <TouchableOpacity style={styles.warningBanner} onPress={loadData}>
+          <Text style={styles.warningText}>
+            ⚠️ {failedSets.length} set{failedSets.length > 1 ? 's' : ''} n'{failedSets.length > 1 ? 'ont' : 'a'} pas pu être chargé{failedSets.length > 1 ? 's' : ''} — cartes manquantes ci-dessous. Toucher pour réessayer.
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <FlatList
         key={viewMode}
         data={cards}
@@ -229,6 +236,8 @@ const styles = StyleSheet.create({
   // Header
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: '#16213e', borderBottom: '1px solid #2a2a4a' },
   headerText:   { color: '#ccc', fontSize: 13, fontFamily: fonts.semibold },
+  warningBanner: { backgroundColor: '#3a2a10', padding: '10px 16px', borderBottom: '1px solid #5a3a10' },
+  warningText:  { color: '#f1c40f', fontSize: 12, fontFamily: fonts.regular },
   viewToggle:   { width: 36, height: 36, backgroundColor: '#1a1a2e', borderRadius: 8, border: '1px solid #2a2a4a', justifyContent: 'center', alignItems: 'center' },
   viewToggleText: { fontSize: 18, color: '#aaa' },
   // Grid

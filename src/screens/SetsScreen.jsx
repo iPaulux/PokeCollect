@@ -11,7 +11,7 @@ import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { pokemonApiUrl } from '../utils/api';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
-import { getCached } from '../utils/cache';
+import { fetchAllCardsForSet } from '../utils/cardsApi';
 import ArticlesModal from '../components/ArticlesModal';
 import ConventionsModal from '../components/ConventionsModal';
 
@@ -218,21 +218,43 @@ export default function SetsScreen() {
     [owned]
   );
 
-  // ─── Calcul valeur portefeuille depuis le cache local ────────────────────────
+  // ─── Calcul valeur portefeuille : regroupe les cartes possédées par set,
+  // récupère chaque set (cache 3-tiers, incl. prix Cardmarket) puis somme.
+  // Plus besoin d'avoir ouvert chaque carte individuellement au préalable.
   useEffect(() => {
+    let cancelled = false;
     const cardIds = Object.keys(owned);
     if (cardIds.length === 0) { setWalletValue(0); setWalletCoverage({ priced: 0, total: 0 }); return; }
-    let sum = 0; let priced = 0;
-    Promise.all(
-      cardIds.map(async (id) => {
-        const cached = await getCached(`fullcard:${id}`);
-        const trend = cached?.cardmarket?.prices?.trendPrice;
-        if (trend != null) { sum += trend; priced++; }
-      })
-    ).then(() => {
-      setWalletValue(sum);
-      setWalletCoverage({ priced, total: cardIds.length });
-    });
+
+    const bySet = {};
+    for (const id of cardIds) {
+      const parts = id.split('-');
+      let numIdx = parts.length - 1;
+      while (numIdx > 0 && !/^\d+$/.test(parts[numIdx])) numIdx--;
+      const sid = parts.slice(0, numIdx).join('-') || parts[0];
+      (bySet[sid] ??= []).push(id);
+    }
+
+    (async () => {
+      let sum = 0; let priced = 0;
+      for (const [sid, ids] of Object.entries(bySet)) {
+        if (cancelled) return;
+        try {
+          const setCards = await fetchAllCardsForSet(sid);
+          const byId = Object.fromEntries(setCards.map((c) => [c.id, c]));
+          for (const id of ids) {
+            const trend = byId[id]?.cardmarket?.prices?.trendPrice;
+            if (trend != null) { sum += trend; priced++; }
+          }
+        } catch (_) { /* set indisponible pour l'instant, réessayé au prochain focus */ }
+      }
+      if (!cancelled) {
+        setWalletValue(sum);
+        setWalletCoverage({ priced, total: cardIds.length });
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [owned]);
 
   useEffect(() => {

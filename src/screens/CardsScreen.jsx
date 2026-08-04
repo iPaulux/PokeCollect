@@ -6,8 +6,7 @@ import {
 } from '../components/rn-web';
 import { getOwnedCards, toggleCard, getFavoriteCards, toggleFavoriteCard, setCardGrading, getGradingInfo } from '../utils/storage';
 import { fonts } from '../utils/theme';
-import { getApiCache, setApiCache, CARDS_TTL } from '../utils/sharedCache';
-import { pokemonApiUrl } from '../utils/api';
+import { fetchAllCardsForSet } from '../utils/cardsApi';
 import CardDetailModal from '../components/CardDetailModal';
 
 function sortCards(cards) {
@@ -46,39 +45,9 @@ export default function CardsScreen() {
     if (!set?.id) return;
     setLoading(true);
     setError(null);
-    const cacheKey = `cards:${set.id}`;
     try {
-      // 3-tiers : local SQLite → Supabase → API
-      const cached = await getApiCache(cacheKey, CARDS_TTL);
-      // Ne pas utiliser un tableau vide depuis le cache (= échec précédent mis en cache)
-      if (cached && cached.length > 0) { setCards(sortCards(cached)); setLoading(false); return; }
-
-      // pageSize max théorique de pokemontcg.io = 250, mais leur backend devient
-      // très lent/instable au-delà de ~100-150 sur certains sets (observé : 500/timeout
-      // dès pageSize=150 sur des sets comme swsh7 ou dp7, alors que 75 répond en ~4s).
-      // On reste prudent avec 75 et on pagine pour couvrir tous les sets.
-      const PAGE = 75;
-      let page = 1;
-      let all  = [];
-      let total = Infinity;
-      while (all.length < total) {
-        const res = await fetch(pokemonApiUrl('/cards', { q: `set.id:${set.id}`, pageSize: PAGE, page }));
-        if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          throw new Error(`API ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
-        }
-        const data = await res.json();
-        if (!Array.isArray(data.data)) throw new Error('Réponse API invalide');
-        total = data.totalCount ?? data.data.length;
-        all   = all.concat(data.data);
-        if (data.data.length < PAGE) break;
-        page++;
-      }
-
-      const result = sortCards(all);
-      // Ne cacher que si on a effectivement des cartes
-      if (result.length > 0) await setApiCache(cacheKey, result);
-      setCards(result);
+      const all = await fetchAllCardsForSet(set.id);
+      setCards(sortCards(all));
     } catch (e) {
       setError(e.message || 'Erreur inconnue');
     } finally {

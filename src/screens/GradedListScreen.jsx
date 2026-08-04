@@ -9,8 +9,7 @@ import {
   getFavoriteCards, toggleFavoriteCard,
   toggleCard, setCardGrading,
 } from '../utils/storage';
-import { getApiCache, setApiCache, CARDS_TTL } from '../utils/sharedCache';
-import { pokemonApiUrl } from '../utils/api';
+import { fetchAllCardsForSet } from '../utils/cardsApi';
 import CardDetailModal from '../components/CardDetailModal';
 
 /** Extrait le setId depuis un cardId */
@@ -71,6 +70,7 @@ export default function GradedListScreen() {
   const [favoriteCards, setFavoriteCards] = useState({});
   const [loading, setLoading]           = useState(true);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [failedSets, setFailedSets]     = useState([]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -99,22 +99,19 @@ export default function GradedListScreen() {
       bySet[sid].push(cardId);
     }
 
-    // Fetch les cartes par set (cache 30j : local SQLite → Supabase → API)
+    // Fetch les cartes par set (cache 3-tiers + pagination robuste : local SQLite → Supabase → API)
     const cardMap = {}; // cardId → cardData
+    const failed = [];
     for (const [sid, ids] of Object.entries(bySet)) {
       const ownedSet = new Set(ids);
       try {
-        let allSetCards = await getApiCache(`cards:${sid}`, CARDS_TTL);
-        if (!allSetCards) {
-          const res = await fetch(
-            pokemonApiUrl('/cards', { q: `set.id:${sid}`, pageSize: 500, orderBy: 'number' })
-          ).then((r) => r.json());
-          allSetCards = res.data || [];
-          await setApiCache(`cards:${sid}`, allSetCards);
-        }
+        const allSetCards = await fetchAllCardsForSet(sid);
         allSetCards.filter((c) => ownedSet.has(c.id)).forEach((c) => { cardMap[c.id] = c; });
-      } catch (_) { /* skip */ }
+      } catch (_) {
+        failed.push(sid);
+      }
     }
+    setFailedSets(failed);
 
     // Construire les sections par société
     const byCompany = {};
@@ -168,10 +165,19 @@ export default function GradedListScreen() {
   if (sections.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.empty}>Aucune carte gradée</Text>
-        <Text style={styles.emptySub}>
-          Ouvre la fiche d'une carte possédée et ajoute un grade via la section 🏆
+        <Text style={styles.empty}>
+          {failedSets.length > 0 ? 'Chargement incomplet' : 'Aucune carte gradée'}
         </Text>
+        <Text style={styles.emptySub}>
+          {failedSets.length > 0
+            ? `${failedSets.length} set${failedSets.length > 1 ? 's' : ''} n'${failedSets.length > 1 ? 'ont' : 'a'} pas pu être chargé${failedSets.length > 1 ? 's' : ''}.`
+            : "Ouvre la fiche d'une carte possédée et ajoute un grade via la section 🏆"}
+        </Text>
+        {failedSets.length > 0 && (
+          <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
+            <Text style={styles.retryBtnText}>Réessayer</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -184,6 +190,14 @@ export default function GradedListScreen() {
           {totalGraded} carte{totalGraded !== 1 ? 's' : ''} gradée{totalGraded !== 1 ? 's' : ''} · {sections.length} société{sections.length !== 1 ? 's' : ''}
         </Text>
       </View>
+
+      {failedSets.length > 0 && (
+        <TouchableOpacity style={styles.warningBanner} onPress={loadData}>
+          <Text style={styles.warningText}>
+            ⚠️ {failedSets.length} set{failedSets.length > 1 ? 's' : ''} n'{failedSets.length > 1 ? 'ont' : 'a'} pas pu être chargé{failedSets.length > 1 ? 's' : ''} — cartes gradées manquantes. Toucher pour réessayer.
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <ScrollView contentContainerStyle={styles.content}>
         {sections.map(({ company, cards }) => (
@@ -219,9 +233,13 @@ const styles = StyleSheet.create({
   loadingText: { color: '#888', fontSize: 14, fontFamily: fonts.regular },
   empty:     { color: '#888', fontSize: 15, fontFamily: fonts.semibold, textAlign: 'center' },
   emptySub:  { color: '#555', fontSize: 13, marginTop: 8, textAlign: 'center', lineHeight: '20px' },
+  retryBtn:  { marginTop: 18, backgroundColor: '#E63F00', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10 },
+  retryBtnText: { color: '#fff', fontSize: 13, fontFamily: fonts.bold },
   // Header
   header:     { padding: '12px 16px', backgroundColor: '#16213e', borderBottom: '1px solid #2a2a4a' },
   headerText: { color: '#ccc', fontSize: 13, fontFamily: fonts.semibold },
+  warningBanner: { backgroundColor: '#3a2a10', padding: '10px 16px', borderBottom: '1px solid #5a3a10' },
+  warningText:   { color: '#f1c40f', fontSize: 12, fontFamily: fonts.regular },
   content:    { padding: 10, paddingBottom: 28 },
   // Section déroulante
   section:       { marginBottom: 8, borderRadius: 12, overflow: 'hidden', border: '1px solid #2a2a4a' },
