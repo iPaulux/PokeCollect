@@ -4,6 +4,7 @@ import { LanguageProvider, useLang, LANGUAGES } from './utils/LanguageContext.js
 import { renameList } from './utils/lists';
 import { hydrateFromRemote } from './utils/persist';
 import { supabase } from './utils/supabase';
+import { prefetchSets } from './utils/prefetch';
 import { Home, Search, List, ShoppingBag, Star, ChevronLeft, ScanLine } from 'lucide-react';
 import SetsScreen from './screens/SetsScreen';
 import CardsScreen from './screens/CardsScreen';
@@ -503,13 +504,13 @@ export default function App() {
     // Charge la session initiale
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s ?? null);
-      if (s) hydrateFromRemote();
+      if (s) { hydrateFromRemote(); prefetchSets(); }
     });
 
     // Écoute les changements (login / logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s ?? null);
-      if (s) hydrateFromRemote();
+      if (s) { hydrateFromRemote(); prefetchSets(); }
     });
     return () => subscription.unsubscribe();
   }, []);
