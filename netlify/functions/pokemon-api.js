@@ -17,6 +17,10 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+// Netlify free tier coupe les fonctions à 10 s — on abort à 8 s pour
+// pouvoir renvoyer une réponse propre avant que Netlify ne force un 502.
+const TIMEOUT_MS = 8000;
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: CORS, body: '' };
@@ -25,20 +29,21 @@ exports.handler = async (event) => {
   const params = event.queryStringParameters || {};
   const { _path = '/', ...rest } = params;
 
-  // Reconstruit la query string sans _path
   const qs = Object.keys(rest).length
     ? '?' + new URLSearchParams(rest).toString()
     : '';
 
   const url = `${BASE}${_path}${qs}`;
 
+  const reqHeaders = { 'User-Agent': 'PokéCollect/1.0' };
+  if (process.env.POKEMON_TCG_API_KEY) {
+    reqHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
+  }
+
   try {
     const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 15000);
-    const res   = await fetch(url, {
-      signal: ctrl.signal,
-      headers: { 'User-Agent': 'PokéCollect/1.0' },
-    });
+    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    const res   = await fetch(url, { signal: ctrl.signal, headers: reqHeaders });
     clearTimeout(timer);
 
     const text = await res.text();
@@ -47,16 +52,16 @@ exports.handler = async (event) => {
       headers: {
         ...CORS,
         'Content-Type': 'application/json; charset=utf-8',
-        // CDN Netlify cache 1h — l'app a déjà son propre cache SQLite/Supabase
         'Cache-Control': 'public, max-age=3600, s-maxage=3600',
       },
       body: text,
     };
   } catch (e) {
+    const isTimeout = e.name === 'AbortError';
     return {
-      statusCode: 503,
-      headers: CORS,
-      body: JSON.stringify({ error: e.message }),
+      statusCode: isTimeout ? 504 : 503,
+      headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ error: isTimeout ? 'API timeout' : e.message }),
     };
   }
 };
