@@ -47,8 +47,19 @@ exports.handler = async (event) => {
     clearTimeout(timer);
 
     const text = await res.text();
+
+    if (!res.ok) {
+      // Ne jamais mettre en cache les erreurs — le CDN Netlify honore Cache-Control
+      // même sur les 4xx/5xx, ce qui bloquerait les retries pendant 1h.
+      return {
+        statusCode: res.status,
+        headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+        body: text || JSON.stringify({ error: `Upstream HTTP ${res.status}` }),
+      };
+    }
+
     return {
-      statusCode: res.status,
+      statusCode: 200,
       headers: {
         ...CORS,
         'Content-Type': 'application/json; charset=utf-8',
