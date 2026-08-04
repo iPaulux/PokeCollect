@@ -53,8 +53,11 @@ export default function CardsScreen() {
       // Ne pas utiliser un tableau vide depuis le cache (= échec précédent mis en cache)
       if (cached && cached.length > 0) { setCards(sortCards(cached)); setLoading(false); return; }
 
-      // pageSize max de pokemontcg.io = 250 ; on pagine si nécessaire
-      const PAGE = 250;
+      // pageSize max théorique de pokemontcg.io = 250, mais leur backend devient
+      // très lent/instable au-delà de ~100-150 sur certains sets (observé : 500/timeout
+      // dès pageSize=150 sur des sets comme swsh7 ou dp7, alors que 75 répond en ~4s).
+      // On reste prudent avec 75 et on pagine pour couvrir tous les sets.
+      const PAGE = 75;
       let page = 1;
       let all  = [];
       let total = Infinity;
