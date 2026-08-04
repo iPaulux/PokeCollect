@@ -53,15 +53,26 @@ export default function CardsScreen() {
       // Ne pas utiliser un tableau vide depuis le cache (= échec précédent mis en cache)
       if (cached && cached.length > 0) { setCards(sortCards(cached)); setLoading(false); return; }
 
-      const res = await fetch(pokemonApiUrl('/cards', { q: `set.id:${set.id}`, pageSize: 500 }));
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`API ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+      // pageSize max de pokemontcg.io = 250 ; on pagine si nécessaire
+      const PAGE = 250;
+      let page = 1;
+      let all  = [];
+      let total = Infinity;
+      while (all.length < total) {
+        const res = await fetch(pokemonApiUrl('/cards', { q: `set.id:${set.id}`, pageSize: PAGE, page }));
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          throw new Error(`API ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+        }
+        const data = await res.json();
+        if (!Array.isArray(data.data)) throw new Error('Réponse API invalide');
+        total = data.totalCount ?? data.data.length;
+        all   = all.concat(data.data);
+        if (data.data.length < PAGE) break;
+        page++;
       }
-      const data = await res.json();
-      if (!Array.isArray(data.data)) throw new Error('Réponse API invalide');
 
-      const result = sortCards(data.data);
+      const result = sortCards(all);
       // Ne cacher que si on a effectivement des cartes
       if (result.length > 0) await setApiCache(cacheKey, result);
       setCards(result);
