@@ -9,7 +9,7 @@ import {
   getFavoriteCards, toggleFavoriteCard,
   toggleCard, setCardGrading,
 } from '../utils/storage';
-import { fetchAllCardsForSet } from '../utils/cardsApi';
+import { fetchCardsForSets } from '../utils/cardsApi';
 import CardDetailModal from '../components/CardDetailModal';
 
 /** Extrait le setId depuis un cardId */
@@ -99,17 +99,14 @@ export default function GradedListScreen() {
       bySet[sid].push(cardId);
     }
 
-    // Fetch les cartes par set (cache 3-tiers + pagination robuste : local SQLite → Supabase → API)
+    // Fetch les cartes de tous les sets en parallèle (concurrence limitée)
     const cardMap = {}; // cardId → cardData
-    const failed = [];
+    const { results, failed } = await fetchCardsForSets(Object.keys(bySet));
     for (const [sid, ids] of Object.entries(bySet)) {
+      const setCards = results[sid];
+      if (!setCards) continue;
       const ownedSet = new Set(ids);
-      try {
-        const allSetCards = await fetchAllCardsForSet(sid);
-        allSetCards.filter((c) => ownedSet.has(c.id)).forEach((c) => { cardMap[c.id] = c; });
-      } catch (_) {
-        failed.push(sid);
-      }
+      setCards.filter((c) => ownedSet.has(c.id)).forEach((c) => { cardMap[c.id] = c; });
     }
     setFailedSets(failed);
 

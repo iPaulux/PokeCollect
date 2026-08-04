@@ -11,7 +11,7 @@ import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { pokemonApiUrl } from '../utils/api';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
-import { fetchAllCardsForSet } from '../utils/cardsApi';
+import { fetchCardsForSets } from '../utils/cardsApi';
 import ArticlesModal from '../components/ArticlesModal';
 import ConventionsModal from '../components/ConventionsModal';
 
@@ -236,17 +236,18 @@ export default function SetsScreen() {
     }
 
     (async () => {
+      // Fetch en parallèle (concurrence limitée) : un set lent ne bloque plus les autres
+      const { results } = await fetchCardsForSets(Object.keys(bySet));
+      if (cancelled) return;
       let sum = 0; let priced = 0;
       for (const [sid, ids] of Object.entries(bySet)) {
-        if (cancelled) return;
-        try {
-          const setCards = await fetchAllCardsForSet(sid);
-          const byId = Object.fromEntries(setCards.map((c) => [c.id, c]));
-          for (const id of ids) {
-            const trend = byId[id]?.cardmarket?.prices?.trendPrice;
-            if (trend != null) { sum += trend; priced++; }
-          }
-        } catch (_) { /* set indisponible pour l'instant, réessayé au prochain focus */ }
+        const setCards = results[sid];
+        if (!setCards) continue; // set indisponible pour l'instant, réessayé au prochain focus
+        const byId = Object.fromEntries(setCards.map((c) => [c.id, c]));
+        for (const id of ids) {
+          const trend = byId[id]?.cardmarket?.prices?.trendPrice;
+          if (trend != null) { sum += trend; priced++; }
+        }
       }
       if (!cancelled) {
         setWalletValue(sum);

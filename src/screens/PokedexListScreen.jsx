@@ -10,7 +10,7 @@ import {
 } from '../utils/storage';
 import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { pokemonApiUrl } from '../utils/api';
-import { fetchAllCardsForSet } from '../utils/cardsApi';
+import { fetchCardsForSets } from '../utils/cardsApi';
 import CardDetailModal from '../components/CardDetailModal';
 
 /** Extrait le setId depuis un cardId (ex: "sv3pt5-152" → "sv3pt5", "sv1-1" → "sv1") */
@@ -69,18 +69,15 @@ export default function PokedexListScreen() {
       return da.localeCompare(db);
     });
 
-    // Récupérer les cartes pour chaque set et filtrer aux possédées (cache 3-tiers + pagination robuste)
+    // Récupérer les cartes de tous les sets en parallèle (concurrence limitée) :
+    // un set lent/en échec ne bloque plus le reste de la collection.
+    const { results, failed } = await fetchCardsForSets(sortedSetIds);
     const allCards = [];
-    const failed = [];
     for (const sid of sortedSetIds) {
+      const setCards = results[sid];
+      if (!setCards) continue;
       const ownedSet = new Set(bySet[sid]);
-      try {
-        const allSetCards = await fetchAllCardsForSet(sid);
-        const filtered = allSetCards.filter((c) => ownedSet.has(c.id));
-        allCards.push(...filtered);
-      } catch (_) {
-        failed.push(sid); // on garde la trace au lieu de faire disparaître silencieusement les cartes
-      }
+      allCards.push(...setCards.filter((c) => ownedSet.has(c.id)));
     }
 
     setCards(allCards);

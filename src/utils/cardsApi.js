@@ -44,3 +44,31 @@ export async function fetchAllCardsForSet(setId) {
   if (all.length > 0) await setApiCache(cacheKey, all);
   return all;
 }
+
+/**
+ * Récupère les cartes de plusieurs sets en parallèle (avec limite de concurrence)
+ * plutôt qu'un set à la fois — un set lent/en échec ne bloque plus les suivants.
+ *
+ * @param {string[]} setIds
+ * @param {number} concurrency
+ * @returns {Promise<{ results: Record<string, Array>, failed: string[] }>}
+ */
+export async function fetchCardsForSets(setIds, concurrency = 5) {
+  const results = {};
+  const failed = [];
+  let i = 0;
+
+  async function worker() {
+    while (i < setIds.length) {
+      const sid = setIds[i++];
+      try {
+        results[sid] = await fetchAllCardsForSet(sid);
+      } catch (_) {
+        failed.push(sid);
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, setIds.length) }, worker));
+  return { results, failed };
+}
