@@ -121,8 +121,6 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
 
   const display = fullCard || card;
   const cm = fullCard?.cardmarket?.prices;
-  const tcp = fullCard?.tcgplayer?.prices;
-  const tcpVariant = tcp?.holofoil ?? tcp?.normal ?? tcp?.['1stEditionHolofoil'] ?? tcp?.reverseHolofoil ?? null;
 
   return createPortal(
     <>
@@ -218,28 +216,16 @@ export default function CardDetailModal({ visible, card, owned, onToggle, favori
               <ActivityIndicator color="#E63F00" />
               <Text style={styles.priceLoading}>Chargement des prix...</Text>
             </View>
-          ) : (cm || tcpVariant) ? (
+          ) : cm ? (
             <View style={styles.priceSection}>
-              <Text style={styles.priceSectionTitle}>💶 Prix du marché</Text>
-              {cm && (
-                <View style={styles.priceBlock}>
-                  <Text style={styles.priceSource}>Cardmarket</Text>
-                  <PriceRow label="Tendance" value={cm.trendPrice} highlight />
-                  <PriceRow label="Vente moy." value={cm.averageSellPrice} />
-                  <PriceRow label="Prix bas" value={cm.lowPrice} />
-                  <PriceRow label="Moy. 7 j" value={cm.avg7} />
-                  <PriceRow label="Moy. 30 j" value={cm.avg30} />
-                </View>
-              )}
-              {tcpVariant && (
-                <View style={styles.priceBlock}>
-                  <Text style={styles.priceSource}>TCGPlayer</Text>
-                  <PriceRow label="Market" value={tcpVariant.market} unit="$" highlight />
-                  <PriceRow label="Bas" value={tcpVariant.low} unit="$" />
-                  <PriceRow label="Haut" value={tcpVariant.high} unit="$" />
-                  <PriceRow label="Mi-prix" value={tcpVariant.mid} unit="$" />
-                </View>
-              )}
+              <Text style={styles.priceSectionTitle}>💶 Prix Cardmarket</Text>
+              <View style={styles.priceBlock}>
+                <PriceRow label="Tendance"  value={cm.trendPrice}        highlight />
+                <PriceRow label="Vente moy." value={cm.averageSellPrice} />
+                <PriceRow label="Prix bas"  value={cm.lowPrice}          />
+                <PriceRow label="Moy. 7 j"  value={cm.avg7}              />
+                <PriceRow label="Moy. 30 j" value={cm.avg30}             />
+              </View>
             </View>
           ) : fullCard ? (
             <View style={styles.priceSection}>

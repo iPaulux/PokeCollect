@@ -8,7 +8,7 @@ import {
 import { PRODUCTS, PRODUCT_TYPES, PRICE_SOURCE, PRICE_UPDATED } from '../data/products';
 import { fonts } from '../utils/theme';
 import { Linking } from '../components/rn-web';
-import { getFavoriteProducts, toggleFavoriteProduct } from '../utils/storage';
+import { getFavoriteProducts, toggleFavoriteProduct, getOwnedProducts, toggleOwnedProduct } from '../utils/storage';
 
 // URL du logo de set via l'API Pokémon TCG
 const setLogoUrl = (setId) => `https://images.pokemontcg.io/${setId}/logo.png`;
@@ -23,7 +23,7 @@ const TYPE_COLORS = {
 };
 
 // ─── Product detail bottom-sheet modal ───────────────────────────────────────
-function ProductModal({ product, onClose, favorited, onToggleFavorite }) {
+function ProductModal({ product, onClose, favorited, onToggleFavorite, owned, onToggleOwned }) {
   const navigate = useNavigate();
   if (!product) return null;
 
@@ -92,7 +92,7 @@ function ProductModal({ product, onClose, favorited, onToggleFavorite }) {
                   <span style={{ backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, padding: '3px 10px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: 12, color: '#fff' }}>
                     {PRODUCT_TYPES.find((t) => t.id === product.type)?.emoji} {PRODUCT_TYPES.find((t) => t.id === product.type)?.label}
                   </span>
-                  <span style={{ backgroundColor: 'rgba(230,63,0,0.3)', borderRadius: 8, padding: '3px 10px', fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 12, color: '#E63F00' }}>
+                  <span style={{ backgroundColor: 'rgba(230,63,0,0.3)', borderRadius: 8, padding: '4px 12px', fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 13, color: '#E63F00', letterSpacing: 0.5 }}>
                     {product.setId?.toUpperCase()}
                   </span>
                 </div>
@@ -140,6 +140,17 @@ function ProductModal({ product, onClose, favorited, onToggleFavorite }) {
 
             {/* Actions */}
             <button
+              onClick={onToggleOwned}
+              style={{
+                width: '100%', padding: '14px', borderRadius: 12,
+                backgroundColor: owned ? '#1a3a1a' : '#E63F00',
+                border: owned ? '1px solid #2a6a2a' : 'none',
+                color: '#fff', fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginBottom: 10,
+              }}
+            >
+              {owned ? '✓  Possédé' : '+  Marquer comme possédé'}
+            </button>
+            <button
               onClick={() => Linking.openURL(cardmarketUrl)}
               style={{ width: '100%', padding: '14px', borderRadius: 12, backgroundColor: '#1a2e1a', border: '1px solid #2a5c2a', color: '#4caf50', fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: 14, cursor: 'pointer', marginBottom: 10 }}
             >
@@ -174,14 +185,21 @@ export default function ProductsScreen() {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favoriteProducts, setFavoriteProducts] = useState({});
+  const [ownedProducts, setOwnedProducts] = useState({});
 
   useFocusEffect(useCallback(() => {
     getFavoriteProducts().then(setFavoriteProducts);
+    getOwnedProducts().then(setOwnedProducts);
   }, []));
 
   const handleToggleFavorite = async (product) => {
     const updated = await toggleFavoriteProduct(product);
     setFavoriteProducts({ ...updated });
+  };
+
+  const handleToggleOwned = async (productId) => {
+    const updated = await toggleOwnedProduct(productId);
+    setOwnedProducts({ ...updated });
   };
 
   const filtered = PRODUCTS.filter((p) => {
@@ -236,10 +254,21 @@ export default function ProductsScreen() {
         }
         renderItem={({ item }) => {
           const isFav = !!favoriteProducts[item.id];
+          const isOwned = !!ownedProducts[item.id];
           return (
-            <TouchableOpacity style={styles.card} onPress={() => setSelectedProduct(item)}>
+            <TouchableOpacity
+              style={[styles.card, isOwned && styles.cardOwned]}
+              onPress={() => setSelectedProduct(item)}
+            >
+              {/* Owned badge */}
+              {isOwned && (
+                <View style={styles.ownedBadge}>
+                  <Text style={styles.ownedBadgeText}>✓</Text>
+                </View>
+              )}
+
               {/* Image produit */}
-              <View style={styles.imageWrap}>
+              <View style={[styles.imageWrap, isOwned && styles.imageWrapOwned]}>
                 <img
                   src={item.image || setLogoUrl(item.setId)}
                   alt={item.nameFr || item.name}
@@ -268,13 +297,25 @@ export default function ProductsScreen() {
                 )}
               </View>
 
-              {/* Favori */}
-              <TouchableOpacity
-                style={[styles.favBtn, isFav && styles.favBtnActive]}
-                onPress={(e) => { e.stopPropagation(); handleToggleFavorite(item); }}
-              >
-                <Text style={[styles.favStar, isFav && styles.favStarActive]}>{isFav ? '★' : '☆'}</Text>
-              </TouchableOpacity>
+              {/* Boutons droits */}
+              <View style={styles.rightBtns}>
+                {/* Toggle possédé */}
+                <TouchableOpacity
+                  style={[styles.ownedBtn, isOwned && styles.ownedBtnActive]}
+                  onPress={(e) => { e.stopPropagation(); handleToggleOwned(item.id); }}
+                >
+                  <Text style={[styles.ownedBtnText, isOwned && styles.ownedBtnTextActive]}>
+                    {isOwned ? '✓' : '+'}
+                  </Text>
+                </TouchableOpacity>
+                {/* Favori */}
+                <TouchableOpacity
+                  style={[styles.favBtn, isFav && styles.favBtnActive]}
+                  onPress={(e) => { e.stopPropagation(); handleToggleFavorite(item); }}
+                >
+                  <Text style={[styles.favStar, isFav && styles.favStarActive]}>{isFav ? '★' : '☆'}</Text>
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           );
         }}
@@ -285,6 +326,8 @@ export default function ProductsScreen() {
         onClose={() => setSelectedProduct(null)}
         favorited={!!favoriteProducts[selectedProduct?.id]}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct)}
+        owned={!!ownedProducts[selectedProduct?.id]}
+        onToggleOwned={() => selectedProduct && handleToggleOwned(selectedProduct.id)}
       />
     </View>
   );
@@ -308,9 +351,18 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyText: { color: '#555', fontSize: 14, fontFamily: fonts.semibold },
   // Card
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#16213e', borderRadius: 12, marginBottom: 8, border: '1px solid #2a2a4a', overflow: 'hidden' },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#16213e', borderRadius: 12, marginBottom: 8, border: '1px solid #2a2a4a', overflow: 'hidden', position: 'relative' },
+  cardOwned: { border: '2px solid #2a6a2a', backgroundColor: '#16231a' },
   imageWrap: { width: 80, height: 88, flexShrink: 0, backgroundColor: '#1a1a2e', alignItems: 'center', justifyContent: 'center', padding: 6 },
+  imageWrapOwned: { backgroundColor: '#1a2e1a' },
   cardBody: { flex: 1, paddingTop: 10, paddingBottom: 10, paddingRight: 6 },
+  ownedBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: '#2a6a2a', borderRadius: 10, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  ownedBadgeText: { color: '#fff', fontSize: 10, fontFamily: fonts.bold },
+  rightBtns: { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, paddingRight: 6, paddingTop: 4, paddingBottom: 4, flexShrink: 0 },
+  ownedBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', border: '1px solid #3a3a5a' },
+  ownedBtnActive: { backgroundColor: '#1a4a1a', border: '1px solid #2a7a2a' },
+  ownedBtnText: { fontSize: 16, color: '#888', fontFamily: fonts.bold },
+  ownedBtnTextActive: { color: '#4caf50' },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
   productName: { flex: 1, color: '#fff', fontSize: 13, fontFamily: fonts.bold, marginRight: 8, lineHeight: '18px' },
   price: { color: '#E63F00', fontSize: 14, fontFamily: fonts.extrabold, flexShrink: 0 },

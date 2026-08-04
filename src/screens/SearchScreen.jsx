@@ -24,9 +24,15 @@ const RARITIES = [
   { label: 'Promo', value: 'Promo' },
 ];
 
+const SIDEBAR_W = 240; // largeur sidebar desktop (voir App.jsx)
+
 export default function SearchScreen() {
   const { width } = useWindowDimensions();
-  const CARD_WIDTH = Math.floor((Math.min(width, 600) - 16 - 24) / 3);
+  const IS_DESKTOP = width >= 768;
+  // Sur desktop, on retire le plafond mobile et on calcule le max de colonnes
+  const contentW = IS_DESKTOP ? width - SIDEBAR_W : Math.min(width, 600);
+  const NUM_COLUMNS = IS_DESKTOP ? Math.max(4, Math.floor(contentW / 150)) : 3;
+  const CARD_WIDTH = Math.floor((contentW - 16 - NUM_COLUMNS * 8) / NUM_COLUMNS);
 
   const [query, setQuery]               = useState('');
   const [rarity, setRarity]             = useState(null);
@@ -180,7 +186,7 @@ export default function SearchScreen() {
         <FlatList
           data={cards}
           keyExtractor={(item) => item.id}
-          numColumns={3}
+          numColumns={NUM_COLUMNS}
           contentContainerStyle={styles.grid}
           ListHeaderComponent={() => (
             <div style={{ paddingLeft: 12, paddingRight: 12 }}>

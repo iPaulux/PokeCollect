@@ -11,6 +11,7 @@ import { getApiCache, setApiCache, SETS_TTL } from '../utils/sharedCache';
 import { pokemonApiUrl } from '../utils/api';
 import { filterSets, resolveSetQuery, getLocalizedSetName } from '../utils/setNames';
 import { getFavoriteSets, toggleFavoriteSet, getOwnedCards, getGradingInfo } from '../utils/storage';
+import { getCached } from '../utils/cache';
 import ArticlesModal from '../components/ArticlesModal';
 import ConventionsModal from '../components/ConventionsModal';
 
@@ -71,7 +72,7 @@ function CollectionModal({ visible, owned, onClose }) {
 }
 
 // ─── Modale "Statistiques" ────────────────────────────────────────────────────
-function StatsModal({ visible, owned, onClose }) {
+function StatsModal({ visible, owned, walletValue, walletCoverage, onClose }) {
   if (!visible) return null;
 
   const allCards = Object.entries(owned);
@@ -114,6 +115,13 @@ function StatsModal({ visible, owned, onClose }) {
               <StatRow label="Sets couverts" value={setIds.size} />
               <StatRow label="Cartes non gradées" value={notGraded} />
               <StatRow label="Cartes gradées" value={graded.length} accent="#f1c40f" />
+              {walletValue != null && (
+                <StatRow
+                  label={`Valeur Cardmarket${walletCoverage?.priced < walletCoverage?.total ? ` (${walletCoverage.priced}/${walletCoverage.total})` : ''}`}
+                  value={`${walletValue.toFixed(2)} €`}
+                  accent="#4caf50"
+                />
+              )}
             </div>
 
             {/* Grading par compagnie */}
@@ -192,6 +200,8 @@ export default function SetsScreen() {
   const [statsVisible, setStatsVisible]             = useState(false);
   const [articlesVisible, setArticlesVisible]       = useState(false);
   const [conventionsVisible, setConventionsVisible] = useState(false);
+  const [walletValue, setWalletValue]               = useState(null);   // null = pas encore calculé
+  const [walletCoverage, setWalletCoverage]         = useState({ priced: 0, total: 0 });
 
   useFocusEffect(useCallback(() => {
     getFavoriteSets().then(setFavoriteSets);
@@ -207,6 +217,23 @@ export default function SetsScreen() {
     (setId) => Object.keys(owned).filter((id) => id.startsWith(setId + '-')).length,
     [owned]
   );
+
+  // ─── Calcul valeur portefeuille depuis le cache local ────────────────────────
+  useEffect(() => {
+    const cardIds = Object.keys(owned);
+    if (cardIds.length === 0) { setWalletValue(0); setWalletCoverage({ priced: 0, total: 0 }); return; }
+    let sum = 0; let priced = 0;
+    Promise.all(
+      cardIds.map(async (id) => {
+        const cached = await getCached(`fullcard:${id}`);
+        const trend = cached?.cardmarket?.prices?.trendPrice;
+        if (trend != null) { sum += trend; priced++; }
+      })
+    ).then(() => {
+      setWalletValue(sum);
+      setWalletCoverage({ priced, total: cardIds.length });
+    });
+  }, [owned]);
 
   useEffect(() => {
     setLoading(true);
@@ -347,6 +374,26 @@ export default function SetsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ── Portefeuille ── */}
+      <View style={[styles.quickRow, { marginTop: 8 }]}>
+        <TouchableOpacity style={[styles.quickCard, styles.walletCard]} onPress={() => setStatsVisible(true)}>
+          <Text style={styles.quickIcon}>💶</Text>
+          {walletValue === null ? (
+            <ActivityIndicator size="small" color="#4caf50" />
+          ) : (
+            <Text style={[styles.quickValue, { color: '#4caf50' }]}>
+              {walletValue.toFixed(2)} €
+            </Text>
+          )}
+          <Text style={styles.quickLabel}>Valeur collection</Text>
+          {walletCoverage.total > 0 && walletCoverage.priced < walletCoverage.total && (
+            <Text style={[styles.quickLabel, { fontSize: 9, marginTop: 1 }]}>
+              {walletCoverage.priced}/{walletCoverage.total} cartes évaluées
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.searchRow}>
         <TextInput
           style={styles.search}
@@ -374,7 +421,7 @@ export default function SetsScreen() {
       />
 
       <CollectionModal  visible={collectionVisible}   owned={owned} onClose={() => setCollectionVisible(false)} />
-      <StatsModal       visible={statsVisible}        owned={owned} onClose={() => setStatsVisible(false)} />
+      <StatsModal       visible={statsVisible}        owned={owned} walletValue={walletValue} walletCoverage={walletCoverage} onClose={() => setStatsVisible(false)} />
       <ArticlesModal    visible={articlesVisible}               onClose={() => setArticlesVisible(false)} />
       <ConventionsModal visible={conventionsVisible}            onClose={() => setConventionsVisible(false)} />
     </View>
@@ -393,6 +440,7 @@ const styles = StyleSheet.create({
   quickIcon:  { fontSize: 22, marginBottom: 4 },
   quickValue: { color: '#E63F00', fontSize: 22, fontFamily: fonts.extrabold, lineHeight: '26px' },
   quickLabel: { color: '#888', fontSize: 11, fontFamily: fonts.semibold, marginTop: 2, textAlign: 'center' },
+  walletCard: { borderColor: '#1a3a1a', flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' },
   loadingText: { color: '#ccc', marginTop: 12, fontSize: 14, fontFamily: fonts.regular },
   emptyText: { color: '#888', fontSize: 14 },
