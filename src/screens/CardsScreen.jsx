@@ -37,25 +37,42 @@ export default function CardsScreen() {
   const [owned, setOwned] = useState({});
   const [favoriteCards, setFavoriteCards] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [selectedCard, setSelectedCard] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
 
-  useEffect(() => {
+  const loadCards = useCallback(async () => {
     if (!set?.id) return;
+    setLoading(true);
+    setError(null);
     const cacheKey = `cards:${set.id}`;
-    (async () => {
+    try {
       // 3-tiers : local SQLite → Supabase → API
       const cached = await getApiCache(cacheKey, CARDS_TTL);
-      if (cached) { setCards(sortCards(cached)); setLoading(false); return; }
+      // Ne pas utiliser un tableau vide depuis le cache (= échec précédent mis en cache)
+      if (cached && cached.length > 0) { setCards(sortCards(cached)); setLoading(false); return; }
+
       const res = await fetch(pokemonApiUrl('/cards', { q: `set.id:${set.id}`, pageSize: 500 }));
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`API ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+      }
       const data = await res.json();
-      const result = sortCards(data.data || []);
-      await setApiCache(cacheKey, result); // écrit en local + Supabase
+      if (!Array.isArray(data.data)) throw new Error('Réponse API invalide');
+
+      const result = sortCards(data.data);
+      // Ne cacher que si on a effectivement des cartes
+      if (result.length > 0) await setApiCache(cacheKey, result);
       setCards(result);
+    } catch (e) {
+      setError(e.message || 'Erreur inconnue');
+    } finally {
       setLoading(false);
-    })();
+    }
   }, [set?.id]);
+
+  useEffect(() => { loadCards(); }, [loadCards]);
 
   useFocusEffect(useCallback(() => {
     getOwnedCards().then(setOwned);
@@ -94,6 +111,17 @@ export default function CardsScreen() {
     <View style={styles.center}>
       <ActivityIndicator size="large" color="#E63F00" />
       <Text style={styles.loadingText}>Chargement des cartes...</Text>
+    </View>
+  );
+
+  if (error) return (
+    <View style={styles.center}>
+      <Text style={styles.errorIcon}>⚠️</Text>
+      <Text style={styles.errorText}>Impossible de charger les cartes</Text>
+      <Text style={styles.errorDetail}>{error}</Text>
+      <TouchableOpacity style={styles.retryBtn} onPress={loadCards}>
+        <Text style={styles.retryBtnText}>Réessayer</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -198,6 +226,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#1a1a2e' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' },
   loadingText: { color: '#ccc', marginTop: 12, fontSize: 14 },
+  errorIcon: { fontSize: 40, marginBottom: 12 },
+  errorText: { color: '#fff', fontSize: 16, fontFamily: fonts.bold, marginBottom: 6 },
+  errorDetail: { color: '#888', fontSize: 12, marginBottom: 20, textAlign: 'center', paddingHorizontal: 32 },
+  retryBtn: { backgroundColor: '#E63F00', paddingHorizontal: 28, paddingVertical: 12, borderRadius: 10 },
+  retryBtnText: { color: '#fff', fontSize: 14, fontFamily: fonts.bold },
   progressContainer: { padding: '12px 16px', backgroundColor: '#16213e', borderBottom: '1px solid #2a2a4a' },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressText: { color: '#ccc', fontSize: 13 },
