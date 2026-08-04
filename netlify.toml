@@ -4,9 +4,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  # Timeout max : 10 s sur free tier, 26 s sur plans payants
-  # Le code interne abort à 8 s pour garantir une réponse propre sur free tier
-  timeout = 26
 
 [[headers]]
   for = "/*"
